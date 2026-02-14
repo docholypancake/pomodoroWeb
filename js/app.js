@@ -195,27 +195,22 @@ function startBreak(type) {
 
 // Show browser notification
 function showNotification() {
+    const message = currentMode === 'work' 
+        ? 'Work session complete! Time for a break.' 
+        : 'Break is over! Time to get back to work.';
+    
     // Try to use browser notifications
     if ('Notification' in window && Notification.permission === 'granted') {
-        const message = currentMode === 'work' 
-            ? 'Work session complete! Time for a break.' 
-            : 'Break is over! Time to get back to work.';
-        
         new Notification('Pomodoro Timer', {
             body: message,
-            icon: '🍅'
+            icon: '/images/favicon.svg'
         });
     } else if ('Notification' in window && Notification.permission !== 'denied') {
         // Request permission
         Notification.requestPermission();
     }
     
-    // Fallback: alert
-    const message = currentMode === 'work' 
-        ? 'Work session complete! Time for a break.' 
-        : 'Break is over! Time to get back to work.';
-    
-    // Only show alert if tab is visible
+    // Fallback: alert (only show if tab is visible)
     if (document.visibilityState === 'visible') {
         setTimeout(() => {
             alert(message);
