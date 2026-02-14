@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A web-based pomodoro timer that stays in your browser's tab and helps you with your productivity">
+    <title>Pomodoro Timer - Stay Productive</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <h1>🍅 Pomodoro Timer</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="help.html">Help Us</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h2>Welcome to Pomodoro Timer</h2>
+                <p>Boost your productivity with the Pomodoro Technique</p>
+            </div>
+        </section>
+
+        <section class="timer-section">
+            <div class="container">
+                <div class="timer-display">
+                    <div id="timer">25:00</div>
+                </div>
+                
+                <div class="timer-controls">
+                    <button id="startBtn" class="btn btn-primary">Start</button>
+                    <button id="pauseBtn" class="btn btn-secondary">Pause</button>
+                    <button id="resetBtn" class="btn btn-secondary">Reset</button>
+                </div>
+
+                <div class="session-info">
+                    <p>Session: <span id="sessionCount">0</span></p>
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="container">
+                <h3>Features</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">⏱️</div>
+                        <h4>Focus Sessions</h4>
+                        <p>25-minute focused work sessions to maximize productivity</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">☕</div>
+                        <h4>Short Breaks</h4>
+                        <p>5-minute breaks to recharge between sessions</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🌟</div>
+                        <h4>Long Breaks</h4>
+                        <p>15-minute breaks after every 4 sessions</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h4>Track Progress</h4>
+                        <p>Monitor your completed sessions and stay motivated</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Pomodoro Timer. Stay focused, stay productive.</p>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
