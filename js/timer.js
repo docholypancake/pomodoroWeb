@@ -149,8 +149,9 @@ document.addEventListener("DOMContentLoaded", () => {
             // Breaks always start automatically
             startTimer();
         } else {
-            // After any break, go back to work (do not auto-start on initial launch)
+            // After any break, always go back to work and auto-start
             setMode("pomodoro");
+            startTimer();
         }
     }
 
