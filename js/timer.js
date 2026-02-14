@@ -96,6 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function startTimer() {
         if (isRunning) return;
         isRunning = true;
+        currentMode === "pomodoro";
         setSettingsButtonState(true);
         startBtn.querySelector(".btn-text").textContent = "Stop";
 
@@ -128,6 +129,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function resetTimer() {
         playSound("timer_sound_down.wav");
         stopTimer();
+        pomodoroCount = 0;
+        sessionCountEl.textContent = "1";
         setMode(currentMode);
     }
 
