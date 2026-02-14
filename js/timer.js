@@ -151,12 +151,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 setMode("short-break");
             }
 
-            // Breaks always start automatically
             startTimer();
         } else {
             // After any break, go back to work and auto-start
-            sessionNumber++;
-            sessionCountEl.textContent = String(sessionNumber);
+            if (currentMode === "long-break") {
+                sessionNumber = 1;
+                pomodoroCount = 0;
+                sessionCountEl.textContent = String(sessionNumber);
+            } else {
+                sessionNumber++;
+                sessionCountEl.textContent = String(sessionNumber);
+            }
+
             setMode("pomodoro");
             startTimer();
         }
