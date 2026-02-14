@@ -158,6 +158,10 @@ body {
     list-style-position: inside;
 }
 
+.main-content .container img {
+    border-radius: var(--radius-lg);
+}
+
 /* ===== TIMER MODES ===== */
 .timer-modes {
     display: flex;
