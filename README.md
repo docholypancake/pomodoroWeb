@@ -47,10 +47,15 @@ css/
 js/
   timer.js
   settings.js
+  worker.js
 assets/
   icon/
+    icon.ico
   pictures/
+    author.jpg
   sounds/
+    timer_sound_up.wav
+    timer_dound_down.wav
 ```
 
 ## Run Locally
