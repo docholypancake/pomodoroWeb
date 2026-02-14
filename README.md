@@ -21,7 +21,7 @@ It’s more effective than a basic timer because it builds rest into the workflo
 5. Repeat the cycle; after a few sessions, take a longer break.
 
 ## Please note
-If you use Safari to run our timer, you won't be able to get sound notifications if ran in the background, since Safari suspends most background tabs in about 10-15 seconds. Please use PomodorWeb with Chrome for better experience!
+If you use Safari to run our timer, you won't be able to get sound notifications if ran in the background, since Safari suspends most background tabs in about 10-15 seconds. Please use Pomodoro Web with Chrome for better experience!
 
 ## Settings
 Click the **Settings** button to customize:
