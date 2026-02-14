@@ -623,3 +623,11 @@ body {
         opacity: 1;
     }
 }
+
+.about-photo {
+    float: right;
+    width: 200px;
+    height: auto;
+    margin: 0 0 var(--spacing-md) var(--spacing-md);
+    border-radius: var(--radius-lg);
+}
