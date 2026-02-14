@@ -13,10 +13,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const SETTINGS_KEY = "pomodoroSettings";
     const LONG_BREAK_EVERY = 4;
 
-    let timer = null;
+    // --- Web Worker Initialization ---
+    // We use a Web Worker to ensure the timer runs reliably in the background
+    let timerWorker = null;
+    try {
+        timerWorker = new Worker('js/worker.js');
+    } catch (e) {
+        console.warn("Web Workers require a server context (e.g., Live Server) to function.");
+    }
+    // ---------------------------------
+
     let isRunning = false;
     let currentMode = "pomodoro";
+    
+    // Logic for precise timing using Date.now() to prevent drift
+    let endTime = null;
     let remainingSeconds = 25 * 60;
+    
     let pomodoroCount = 0;
     let sessionNumber = 1;
 
@@ -27,6 +40,33 @@ document.addEventListener("DOMContentLoaded", () => {
         "short-break": "Short Break",
         "long-break": "Long Break"
     };
+
+    // --- Worker Signal Handling ---
+    if (timerWorker) {
+        timerWorker.onmessage = function(e) {
+            if (e.data === 'tick') {
+                onTimerTick();
+            }
+        };
+    }
+
+    // Core function called every second (on tick)
+    function onTimerTick() {
+        if (!isRunning) return;
+
+        const now = Date.now();
+        // Calculate remaining time by comparing current time with the target end time
+        const secondsLeft = Math.round((endTime - now) / 1000);
+        
+        remainingSeconds = secondsLeft;
+
+        if (secondsLeft >= 0) {
+            updateDisplay();
+        } else {
+            handleCycleComplete();
+        }
+    }
+    // -----------------------------
 
     function loadSettingsFromStorage() {
         const saved = localStorage.getItem(SETTINGS_KEY);
@@ -67,8 +107,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateDisplay() {
-        const minutes = Math.floor(remainingSeconds / 60);
-        const seconds = remainingSeconds % 60;
+        // Guard against negative numbers
+        const safeSeconds = Math.max(0, remainingSeconds);
+        const minutes = Math.floor(safeSeconds / 60);
+        const seconds = safeSeconds % 60;
         timeDisplay.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
         updateProgress();
     }
@@ -76,8 +118,11 @@ document.addEventListener("DOMContentLoaded", () => {
     function updateProgress() {
         const totalSeconds = (settings[getSettingsKey(currentMode)] || 25) * 60;
         const progress = 1 - remainingSeconds / totalSeconds;
+        // Clamp progress between 0 and 1 to prevent visual glitches
+        const safeProgress = Math.min(Math.max(progress, 0), 1);
+        
         const circumference = 2 * Math.PI * 90;
-        const offset = circumference * (1 - progress);
+        const offset = circumference * (1 - safeProgress);
         progressBar.style.strokeDasharray = `${circumference}`;
         progressBar.style.strokeDashoffset = `${offset}`;
     }
@@ -96,8 +141,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function startTimer() {
         if (isRunning) return;
+        
+        // Calculate the target end time
+        const now = Date.now();
+        endTime = now + (remainingSeconds * 1000);
+        
         isRunning = true;
-        currentMode === "pomodoro";
         setSettingsButtonState(true);
         startBtn.querySelector(".btn-text").textContent = "Stop";
 
@@ -109,22 +158,26 @@ document.addEventListener("DOMContentLoaded", () => {
             playSound("timer_sound_up.wav");
         }
 
-        timer = setInterval(() => {
-            if (remainingSeconds > 0) {
-                remainingSeconds--;
-                updateDisplay();
-            } else {
-                handleCycleComplete();
-            }
-        }, 1000);
+        // --- Start via Worker ---
+        if (timerWorker) {
+            timerWorker.postMessage('start');
+        } else {
+            // Fallback for environments without Worker support (e.g., local file system)
+            window.fallbackTimer = setInterval(onTimerTick, 1000);
+        }
     }
 
     function stopTimer() {
         isRunning = false;
         setSettingsButtonState(false);
         startBtn.querySelector(".btn-text").textContent = "Start";
-        clearInterval(timer);
-        timer = null;
+        
+        // --- Stop via Worker ---
+        if (timerWorker) {
+            timerWorker.postMessage('stop');
+        } else if (window.fallbackTimer) {
+            clearInterval(window.fallbackTimer);
+        }
     }
 
     function resetTimer() {
@@ -133,11 +186,13 @@ document.addEventListener("DOMContentLoaded", () => {
         pomodoroCount = 0;
         sessionNumber = 1;
         sessionCountEl.textContent = String(sessionNumber);
-        setMode(currentMode);
+        setMode(currentMode); // Resets remainingSeconds based on the current mode settings
     }
 
     function handleCycleComplete() {
         stopTimer();
+        remainingSeconds = 0;
+        updateDisplay();
 
         if (currentMode === "pomodoro") {
             playSound("timer_sound_down.wav");
@@ -145,15 +200,15 @@ document.addEventListener("DOMContentLoaded", () => {
             pomodoroCount++;
             sessionCountEl.textContent = String(sessionNumber);
 
+            // Determine if it's a long break or short break
             if (pomodoroCount % LONG_BREAK_EVERY === 0) {
                 setMode("long-break");
             } else {
                 setMode("short-break");
             }
-
             startTimer();
         } else {
-            // After any break, go back to work and auto-start
+            // Logic for switching back to work after a break
             if (currentMode === "long-break") {
                 sessionNumber = 1;
                 pomodoroCount = 0;
@@ -177,9 +232,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.addEventListener("settings:updated", (e) => {
         settings = e.detail;
-        setMode(currentMode);
+        if (!isRunning) {
+             setMode(currentMode);
+        }
     });
-
+    
+    // Initial Setup
     setMode("pomodoro");
     sessionCountEl.textContent = String(sessionNumber);
     setSettingsButtonState(false);
