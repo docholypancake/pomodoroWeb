@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentMode = "pomodoro";
     let remainingSeconds = 25 * 60;
     let pomodoroCount = 0;
+    let sessionNumber = 1;
 
     let settings = loadSettingsFromStorage();
 
@@ -130,7 +131,8 @@ document.addEventListener("DOMContentLoaded", () => {
         playSound("timer_sound_down.wav");
         stopTimer();
         pomodoroCount = 0;
-        sessionCountEl.textContent = "1";
+        sessionNumber = 1;
+        sessionCountEl.textContent = String(sessionNumber);
         setMode(currentMode);
     }
 
@@ -141,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
             playSound("timer_sound_down.wav");
 
             pomodoroCount++;
-            sessionCountEl.textContent = pomodoroCount;
+            sessionCountEl.textContent = String(sessionNumber);
 
             if (pomodoroCount % LONG_BREAK_EVERY === 0) {
                 setMode("long-break");
@@ -152,7 +154,9 @@ document.addEventListener("DOMContentLoaded", () => {
             // Breaks always start automatically
             startTimer();
         } else {
-            // After any break, always go back to work and auto-start
+            // After any break, go back to work and auto-start
+            sessionNumber++;
+            sessionCountEl.textContent = String(sessionNumber);
             setMode("pomodoro");
             startTimer();
         }
@@ -171,5 +175,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     setMode("pomodoro");
+    sessionCountEl.textContent = String(sessionNumber);
     setSettingsButtonState(false);
 });
