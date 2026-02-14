@@ -134,8 +134,28 @@ body {
 }
 
 .container {
-    max-width: 600px;
+    max-width: 800px;
     width: 100%;
+    background-color: rgba(42, 42, 42, 0.85);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+}
+
+.main-content .container h2 {
+    margin-bottom: var(--spacing-md);
+}
+
+.main-content .container h3 {
+    margin-top: var(--spacing-lg);
+    margin-bottom: var(--spacing-sm);
+}
+
+.main-content .container ol,
+.main-content .container ul {
+    margin-left: 0;
+    padding-left: 0;
+    list-style-position: inside;
 }
 
 /* ===== TIMER MODES ===== */
