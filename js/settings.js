@@ -6,8 +6,6 @@ const cancelSettingsBtn = document.getElementById("cancelSettings");
 const pomodoroInput = document.getElementById("pomodoroTime");
 const shortBreakInput = document.getElementById("shortBreakTime");
 const longBreakInput = document.getElementById("longBreakTime");
-const autoStartBreaksInput = document.getElementById("autoStartBreaks");
-const autoStartPomodorosInput = document.getElementById("autoStartPomodoros");
 const soundEnabledInput = document.getElementById("soundEnabled");
 
 const SETTINGS_KEY = "pomodoroSettings";
@@ -17,8 +15,6 @@ function getDefaultSettings() {
         pomodoro: 25,
         shortBreak: 5,
         longBreak: 15,
-        autoStartBreaks: false,
-        autoStartPomodoros: false,
         soundEnabled: true
     };
 }
@@ -28,8 +24,6 @@ function readSettingsFromInputs() {
         pomodoro: Number(pomodoroInput.value),
         shortBreak: Number(shortBreakInput.value),
         longBreak: Number(longBreakInput.value),
-        autoStartBreaks: autoStartBreaksInput.checked,
-        autoStartPomodoros: autoStartPomodorosInput.checked,
         soundEnabled: soundEnabledInput.checked
     };
 }
@@ -41,8 +35,6 @@ function loadSettings() {
     pomodoroInput.value = settings.pomodoro;
     shortBreakInput.value = settings.shortBreak;
     longBreakInput.value = settings.longBreak;
-    autoStartBreaksInput.checked = settings.autoStartBreaks;
-    autoStartPomodorosInput.checked = settings.autoStartPomodoros;
     soundEnabledInput.checked = settings.soundEnabled;
 
     return settings;
@@ -70,6 +62,7 @@ function closeSettings() {
 }
 
 settingsToggle?.addEventListener("click", () => {
+    if (settingsToggle.disabled) return;
     settingsDropdown.classList.contains("active") ? closeSettings() : openSettings();
 });
 
@@ -85,9 +78,7 @@ document.addEventListener("click", (e) => {
 [pomodoroInput, shortBreakInput, longBreakInput].forEach(input => {
     input.addEventListener("input", applySettingsLive);
 });
-[autoStartBreaksInput, autoStartPomodorosInput, soundEnabledInput].forEach(input => {
-    input.addEventListener("change", applySettingsLive);
-});
+soundEnabledInput.addEventListener("change", applySettingsLive);
 
 const settings = loadSettings();
 document.dispatchEvent(new CustomEvent("settings:loaded", { detail: settings }));

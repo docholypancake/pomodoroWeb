@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const timerLabel = document.querySelector(".timer-label");
     const progressBar = document.querySelector(".timer-progress-bar");
     const modeLabels = document.querySelectorAll(".mode-label");
+    const settingsToggle = document.getElementById("settingsToggle");
 
     if (!timeDisplay || !startBtn || !resetBtn || !timerLabel || !progressBar) return;
 
@@ -33,8 +34,6 @@ document.addEventListener("DOMContentLoaded", () => {
             pomodoro: 25,
             shortBreak: 5,
             longBreak: 15,
-            autoStartBreaks: true,
-            autoStartPomodoros: false,
             soundEnabled: true
         };
     }
@@ -82,9 +81,16 @@ document.addEventListener("DOMContentLoaded", () => {
         progressBar.style.strokeDashoffset = `${circumference}`;
     }
 
+    function setSettingsButtonState(running) {
+        if (!settingsToggle) return;
+        settingsToggle.disabled = running;
+        settingsToggle.setAttribute("aria-disabled", running ? "true" : "false");
+    }
+
     function startTimer() {
         if (isRunning) return;
         isRunning = true;
+        setSettingsButtonState(true);
         startBtn.querySelector(".btn-text").textContent = "Stop";
 
         timer = setInterval(() => {
@@ -99,6 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function stopTimer() {
         isRunning = false;
+        setSettingsButtonState(false);
         startBtn.querySelector(".btn-text").textContent = "Start";
         clearInterval(timer);
         timer = null;
@@ -125,12 +132,8 @@ document.addEventListener("DOMContentLoaded", () => {
             // Breaks always start automatically
             startTimer();
         } else {
-            // After any break, go back to work
+            // After any break, go back to work (do not auto-start on initial launch)
             setMode("pomodoro");
-
-            if (settings.autoStartPomodoros) {
-                startTimer();
-            }
         }
 
         if (settings.soundEnabled) beep();
@@ -163,4 +166,5 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     setMode("pomodoro");
+    setSettingsButtonState(false);
 });
