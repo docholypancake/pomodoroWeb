@@ -16,3 +16,12 @@ _site/
 # counterproductive to check this file into the repository.
 # Details at https://github.com/github/pages-gem/issues/768
 Gemfile.lock
+
+# Ignore .env files which may contain sensitive information
+.env
+
+# Ignore node_modules directory which may be used for frontend dependencies
+node_modules/
+
+# Ignore mac OS specific files
+.DS_Store
