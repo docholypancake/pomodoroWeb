@@ -110,6 +110,7 @@ body {
     cursor: pointer;
     transition: all var(--transition-normal);
     font-weight: 500;
+    text-decoration: none;
 }
 
 .nav-btn:hover {
