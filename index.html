@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pomodoro Web</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="assets/icon/icon.ico" type="image/x-icon">
 </head>
 <body>
     <!-- Header Section --> 
@@ -12,9 +13,9 @@
         <div class="header-container">
             <h1 class="logo">Pomodoro Timer</h1>
             <nav class="nav">
-                <button class="nav-btn nav-btn--active" data-page="timer">Timer</button>
-                <button class="nav-btn" data-page="about">About</button>
-                <button class="nav-btn" data-page="help_us">Help Us</button>
+                <a class="nav-btn nav-btn--active" href="index.html">Timer</a>
+                <a class="nav-btn" href="about.html">About</a>
+                <a class="nav-btn" href="helpus.html">Help Us</a>
             </nav>
         </div>
     </header>
@@ -79,20 +80,6 @@
                             <input type="number" id="longBreakTime" class="settings-input" value="15" min="1" max="60">
                         </div>
 
-                        <!-- <div class="settings-group">
-                            <label class="settings-label checkbox-label">
-                                <input type="checkbox" id="autoStartBreaks" class="settings-checkbox">
-                                <span>Auto-start Breaks</span>
-                            </label>
-                        </div>
-
-                        <div class="settings-group">
-                            <label class="settings-label checkbox-label">
-                                <input type="checkbox" id="autoStartPomodoros" class="settings-checkbox">
-                                <span>Auto-start Pomodoros</span>
-                            </label>
-                        </div> -->
-
                         <div class="settings-group">
                             <label class="settings-label checkbox-label">
                                 <input type="checkbox" id="soundEnabled" class="settings-checkbox" checked>
@@ -119,8 +106,8 @@
     <footer class="footer">
         <div class="footer-container">
             <p class="footer-text">
-                &copy; 2026 Pomodoro Web | 
-                <a href="#" class="footer-link">Github</a> | 
+                &copy; 2026 Pomodoro Web | Bug? Report on 
+                <a href="https://github.com/docholypancake/pomodoroWeb/issues" class="footer-link">GitHub</a> | 
             </p>
             <p class="footer-note">Stay focused, stay productive</p>
         </div>
