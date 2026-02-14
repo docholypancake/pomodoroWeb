@@ -5,21 +5,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const sessionCountEl = document.getElementById("sessionCount");
     const timerLabel = document.querySelector(".timer-label");
     const progressBar = document.querySelector(".timer-progress-bar");
-    const modeButtons = document.querySelectorAll(".mode-btn");
+    const modeLabels = document.querySelectorAll(".mode-label");
 
     if (!timeDisplay || !startBtn || !resetBtn || !timerLabel || !progressBar) return;
 
     const SETTINGS_KEY = "pomodoroSettings";
+    const LONG_BREAK_EVERY = 4;
 
     let timer = null;
     let isRunning = false;
     let currentMode = "pomodoro";
     let remainingSeconds = 25 * 60;
-    let sessionCount = 1;
+    let pomodoroCount = 0;
 
     let settings = loadSettingsFromStorage();
 
-    const modeLabels = {
+    const labelText = {
         pomodoro: "Focus Time",
         "short-break": "Short Break",
         "long-break": "Long Break"
@@ -32,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
             pomodoro: 25,
             shortBreak: 5,
             longBreak: 15,
-            autoStartBreaks: false,
+            autoStartBreaks: true,
             autoStartPomodoros: false,
             soundEnabled: true
         };
@@ -50,11 +51,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const minutes = settings[getSettingsKey(mode)] || 25;
         remainingSeconds = minutes * 60;
 
-        modeButtons.forEach(btn => {
-            btn.classList.toggle("mode-btn--active", btn.dataset.mode === mode);
+        modeLabels.forEach(label => {
+            label.classList.toggle("mode-label--active", label.dataset.mode === mode);
         });
 
-        updateLabel();
+        timerLabel.textContent = labelText[mode] || "Timer";
         updateDisplay();
         resetProgress();
     }
@@ -64,10 +65,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const seconds = remainingSeconds % 60;
         timeDisplay.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
         updateProgress();
-    }
-
-    function updateLabel() {
-        timerLabel.textContent = modeLabels[currentMode] || "Timer";
     }
 
     function updateProgress() {
@@ -95,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 remainingSeconds--;
                 updateDisplay();
             } else {
-                stopTimer();
+                handleCycleComplete();
             }
         }, 1000);
     }
@@ -112,6 +109,47 @@ document.addEventListener("DOMContentLoaded", () => {
         setMode(currentMode);
     }
 
+    function handleCycleComplete() {
+        stopTimer();
+
+        if (currentMode === "pomodoro") {
+            pomodoroCount++;
+            sessionCountEl.textContent = pomodoroCount;
+
+            if (pomodoroCount % LONG_BREAK_EVERY === 0) {
+                setMode("long-break");
+            } else {
+                setMode("short-break");
+            }
+
+            // Breaks always start automatically
+            startTimer();
+        } else {
+            // After any break, go back to work
+            setMode("pomodoro");
+
+            if (settings.autoStartPomodoros) {
+                startTimer();
+            }
+        }
+
+        if (settings.soundEnabled) beep();
+    }
+
+    function beep() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.value = 880;
+            gain.gain.value = 0.1;
+            osc.connect(gain).connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.2);
+        } catch {}
+    }
+
     startBtn.addEventListener("click", () => {
         if (isRunning) stopTimer();
         else startTimer();
@@ -119,18 +157,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     resetBtn.addEventListener("click", resetTimer);
 
-    modeButtons.forEach(btn => {
-        btn.addEventListener("click", () => {
-            stopTimer();
-            setMode(btn.dataset.mode);
-        });
-    });
-
     document.addEventListener("settings:updated", (e) => {
         settings = e.detail;
         setMode(currentMode);
     });
 
-    // Initialize with stored settings
     setMode("pomodoro");
 });
