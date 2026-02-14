@@ -5,6 +5,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const sessionCountEl = document.getElementById("sessionCount");
     const timerLabel = document.querySelector(".timer-label");
     const progressBar = document.querySelector(".timer-progress-bar");
+    const modeLabels = document.querySelectorAll(".mode-label");
+    const settingsToggle = document.getElementById("settingsToggle");
 
     if (!timeDisplay || !startBtn || !resetBtn || !timerLabel || !progressBar) return;
 
@@ -55,18 +57,19 @@ document.addEventListener("DOMContentLoaded", () => {
         const minutes = settings[getSettingsKey(mode)] || 25;
         remainingSeconds = minutes * 60;
 
+        modeLabels.forEach(label => {
+            label.classList.toggle("mode-label--active", label.dataset.mode === mode);
+        });
+
         timerLabel.textContent = labelText[mode] || "Timer";
         updateDisplay();
         resetProgress();
     }
 
-    function updateDisplay(seconds) {
-        if (seconds !== undefined) {
-            remainingSeconds = seconds;
-        }
+    function updateDisplay() {
         const minutes = Math.floor(remainingSeconds / 60);
-        const secs = remainingSeconds % 60;
-        timeDisplay.textContent = `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+        const seconds = remainingSeconds % 60;
+        timeDisplay.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
         updateProgress();
     }
 
@@ -165,28 +168,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    const worker = new Worker('js/timerWorker.js');
-
-    worker.onmessage = function(e) {
-        const { remainingSeconds, action } = e.data;
-        if (remainingSeconds !== undefined) {
-            updateDisplay(remainingSeconds);
-        }
-        if (action === 'complete') {
-            // Handle timer completion
-            handleCycleComplete();
-        }
-    };
-
     startBtn.addEventListener("click", () => {
-        const seconds = 25 * 60; // Example for Pomodoro
-        worker.postMessage({ action: 'start', seconds });
+        if (isRunning) stopTimer();
+        else startTimer();
     });
 
-    resetBtn.addEventListener("click", () => {
-        worker.postMessage({ action: 'stop' });
-        resetTimer();
-    });
+    resetBtn.addEventListener("click", resetTimer);
 
     document.addEventListener("settings:updated", (e) => {
         settings = e.detail;
