@@ -11,8 +11,7 @@ self.onmessage = function(e) {
         timerInterval = setInterval(() => {
             self.postMessage('tick');
         }, 1000);
-    } 
-    else if (command === 'stop') {
+    } else if (command === 'stop') {
         if (timerInterval) clearInterval(timerInterval);
         timerInterval = null;
     }
