@@ -61,11 +61,7 @@ function closeSettings() {
 }
 
 settingsToggle?.addEventListener("click", () => {
-    if (settingsDropdown.classList.contains("active")) {
-        closeSettings();
-    } else {
-        openSettings();
-    }
+    settingsDropdown.classList.contains("active") ? closeSettings() : openSettings();
 });
 
 saveSettingsBtn?.addEventListener("click", saveSettings);

@@ -27,25 +27,25 @@ const modeLabels = {
     "long-break": "Long Break"
 };
 
-function setMode(mode) {
-    currentMode = mode;
-    const minutes = settings[getSettingsKey(mode)] || 25;
-    remainingSeconds = minutes * 60;
-    updateDisplay();
-    updateLabel();
-
-    modeButtons.forEach(btn => {
-        btn.classList.toggle("mode-btn--active", btn.dataset.mode === mode);
-    });
-
-    resetProgress();
-}
-
 function getSettingsKey(mode) {
     if (mode === "pomodoro") return "pomodoro";
     if (mode === "short-break") return "shortBreak";
     if (mode === "long-break") return "longBreak";
     return "pomodoro";
+}
+
+function setMode(mode) {
+    currentMode = mode;
+    const minutes = settings[getSettingsKey(mode)] || 25;
+    remainingSeconds = minutes * 60;
+
+    modeButtons.forEach(btn => {
+        btn.classList.toggle("mode-btn--active", btn.dataset.mode === mode);
+    });
+
+    updateLabel();
+    updateDisplay();
+    resetProgress();
 }
 
 function updateDisplay() {
@@ -106,24 +106,14 @@ function completeCycle() {
     if (currentMode === "pomodoro") {
         sessionCount++;
         sessionCountEl.textContent = sessionCount;
-        if (settings.autoStartBreaks) {
-            setMode("short-break");
-            startTimer();
-        } else {
-            setMode("short-break");
-        }
+        setMode("short-break");
+        if (settings.autoStartBreaks) startTimer();
     } else {
-        if (settings.autoStartPomodoros) {
-            setMode("pomodoro");
-            startTimer();
-        } else {
-            setMode("pomodoro");
-        }
+        setMode("pomodoro");
+        if (settings.autoStartPomodoros) startTimer();
     }
 
-    if (settings.soundEnabled) {
-        beep();
-    }
+    if (settings.soundEnabled) beep();
 }
 
 function beep() {
