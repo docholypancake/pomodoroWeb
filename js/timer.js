@@ -9,26 +9,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!timeDisplay || !startBtn || !resetBtn || !timerLabel || !progressBar) return;
 
+    const SETTINGS_KEY = "pomodoroSettings";
+
     let timer = null;
     let isRunning = false;
     let currentMode = "pomodoro";
     let remainingSeconds = 25 * 60;
     let sessionCount = 1;
 
-    let settings = {
-        pomodoro: 25,
-        shortBreak: 5,
-        longBreak: 15,
-        autoStartBreaks: false,
-        autoStartPomodoros: false,
-        soundEnabled: true
-    };
+    let settings = loadSettingsFromStorage();
 
     const modeLabels = {
         pomodoro: "Focus Time",
         "short-break": "Short Break",
         "long-break": "Long Break"
     };
+
+    function loadSettingsFromStorage() {
+        const saved = localStorage.getItem(SETTINGS_KEY);
+        if (saved) return JSON.parse(saved);
+        return {
+            pomodoro: 25,
+            shortBreak: 5,
+            longBreak: 15,
+            autoStartBreaks: false,
+            autoStartPomodoros: false,
+            soundEnabled: true
+        };
+    }
 
     function getSettingsKey(mode) {
         if (mode === "pomodoro") return "pomodoro";
@@ -118,15 +126,11 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    document.addEventListener("settings:loaded", (e) => {
-        settings = e.detail;
-        setMode(currentMode);
-    });
-
     document.addEventListener("settings:updated", (e) => {
         settings = e.detail;
         setMode(currentMode);
     });
 
+    // Initialize with stored settings
     setMode("pomodoro");
 });

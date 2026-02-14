@@ -23,6 +23,17 @@ function getDefaultSettings() {
     };
 }
 
+function readSettingsFromInputs() {
+    return {
+        pomodoro: Number(pomodoroInput.value),
+        shortBreak: Number(shortBreakInput.value),
+        longBreak: Number(longBreakInput.value),
+        autoStartBreaks: autoStartBreaksInput.checked,
+        autoStartPomodoros: autoStartPomodorosInput.checked,
+        soundEnabled: soundEnabledInput.checked
+    };
+}
+
 function loadSettings() {
     const saved = localStorage.getItem(SETTINGS_KEY);
     const settings = saved ? JSON.parse(saved) : getDefaultSettings();
@@ -38,18 +49,16 @@ function loadSettings() {
 }
 
 function saveSettings() {
-    const settings = {
-        pomodoro: Number(pomodoroInput.value),
-        shortBreak: Number(shortBreakInput.value),
-        longBreak: Number(longBreakInput.value),
-        autoStartBreaks: autoStartBreaksInput.checked,
-        autoStartPomodoros: autoStartPomodorosInput.checked,
-        soundEnabled: soundEnabledInput.checked
-    };
-
+    const settings = readSettingsFromInputs();
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     document.dispatchEvent(new CustomEvent("settings:updated", { detail: settings }));
     closeSettings();
+}
+
+function applySettingsLive() {
+    const settings = readSettingsFromInputs();
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    document.dispatchEvent(new CustomEvent("settings:updated", { detail: settings }));
 }
 
 function openSettings() {
@@ -70,6 +79,14 @@ cancelSettingsBtn?.addEventListener("click", closeSettings);
 document.addEventListener("click", (e) => {
     const isInside = settingsDropdown.contains(e.target) || settingsToggle.contains(e.target);
     if (!isInside) closeSettings();
+});
+
+// Live updates when inputs change
+[pomodoroInput, shortBreakInput, longBreakInput].forEach(input => {
+    input.addEventListener("input", applySettingsLive);
+});
+[autoStartBreaksInput, autoStartPomodorosInput, soundEnabledInput].forEach(input => {
+    input.addEventListener("change", applySettingsLive);
 });
 
 const settings = loadSettings();
