@@ -38,6 +38,12 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     }
 
+    function playSound(fileName) {
+        if (!settings.soundEnabled) return;
+        const audio = new Audio(`assets/sounds/${fileName}`);
+        audio.play().catch(() => {});
+    }
+
     function getSettingsKey(mode) {
         if (mode === "pomodoro") return "pomodoro";
         if (mode === "short-break") return "shortBreak";
@@ -93,6 +99,14 @@ document.addEventListener("DOMContentLoaded", () => {
         setSettingsButtonState(true);
         startBtn.querySelector(".btn-text").textContent = "Stop";
 
+        const isFreshWorkStart =
+            currentMode === "pomodoro" &&
+            remainingSeconds === (settings.pomodoro || 25) * 60;
+
+        if (isFreshWorkStart) {
+            playSound("timer_sound_up.wav");
+        }
+
         timer = setInterval(() => {
             if (remainingSeconds > 0) {
                 remainingSeconds--;
@@ -112,6 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function resetTimer() {
+        playSound("timer_sound_down.wav");
         stopTimer();
         setMode(currentMode);
     }
@@ -120,6 +135,8 @@ document.addEventListener("DOMContentLoaded", () => {
         stopTimer();
 
         if (currentMode === "pomodoro") {
+            playSound("timer_sound_down.wav");
+
             pomodoroCount++;
             sessionCountEl.textContent = pomodoroCount;
 
@@ -135,22 +152,6 @@ document.addEventListener("DOMContentLoaded", () => {
             // After any break, go back to work (do not auto-start on initial launch)
             setMode("pomodoro");
         }
-
-        if (settings.soundEnabled) beep();
-    }
-
-    function beep() {
-        try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = "sine";
-            osc.frequency.value = 880;
-            gain.gain.value = 0.1;
-            osc.connect(gain).connect(ctx.destination);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.2);
-        } catch {}
     }
 
     startBtn.addEventListener("click", () => {
