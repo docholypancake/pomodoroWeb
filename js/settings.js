@@ -1,5 +1,6 @@
 const settingsToggle = document.getElementById("settingsToggle");
-const settingsDropdown = document.getElementById("settingsDropdown");
+const timerSection = document.getElementById("timerSection");
+const settingsSection = document.getElementById("settingsSection");
 const saveSettingsBtn = document.getElementById("saveSettings");
 const cancelSettingsBtn = document.getElementById("cancelSettings");
 
@@ -54,25 +55,22 @@ function applySettingsLive() {
 }
 
 function openSettings() {
-    settingsDropdown.classList.add("active");
+    timerSection.classList.add("hidden");
+    settingsSection.classList.remove("hidden");
 }
 
 function closeSettings() {
-    settingsDropdown.classList.remove("active");
+    settingsSection.classList.add("hidden");
+    timerSection.classList.remove("hidden");
 }
 
 settingsToggle?.addEventListener("click", () => {
     if (settingsToggle.disabled) return;
-    settingsDropdown.classList.contains("active") ? closeSettings() : openSettings();
+    settingsSection.classList.contains("hidden") ? openSettings() : closeSettings();
 });
 
 saveSettingsBtn?.addEventListener("click", saveSettings);
 cancelSettingsBtn?.addEventListener("click", closeSettings);
-
-document.addEventListener("click", (e) => {
-    const isInside = settingsDropdown.contains(e.target) || settingsToggle.contains(e.target);
-    if (!isInside) closeSettings();
-});
 
 // Live updates when inputs change
 [pomodoroInput, shortBreakInput, longBreakInput].forEach(input => {
