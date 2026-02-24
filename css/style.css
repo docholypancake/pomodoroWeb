@@ -101,11 +101,33 @@ a:focus {
     gap: var(--spacing-md);
 }
 
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
 .logo {
     font-size: var(--font-size-xl);
     font-weight: 700;
     color: var(--color-primary-light);
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.logo-img {
+    height: 40px;
+    width: auto;
+    transition: transform var(--transition-fast);
+}
+
+.logo-img:hover {
+    transform: scale(1.1);
 }
 
 .nav {
