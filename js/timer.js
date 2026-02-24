@@ -148,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
         
         isRunning = true;
         setSettingsButtonState(true);
-        startBtn.querySelector(".btn-text").textContent = "Paws";
+        startBtn.querySelector(".btn-text").textContent = "Pause";
 
         const isFreshWorkStart =
             currentMode === "pomodoro" &&
