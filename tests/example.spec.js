@@ -176,9 +176,10 @@ test.describe('Pomodoro Timer - Settings', () => {
     await saveBtn.click();
     
     // Check that value is saved in localStorage
-    const savedSettings = await page.evaluate(() => 
-      JSON.parse(localStorage.getItem('pomodoroSettings'))
-    );
+    const savedSettings = await page.evaluate(() => {
+      const settings = localStorage.getItem('pomodoroSettings');
+      return settings ? JSON.parse(settings) : null;
+    });
     expect(savedSettings.shortBreak).toBe(3);
   });
 
