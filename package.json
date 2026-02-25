@@ -1,0 +1,22 @@
+{
+  "name": "pomodoroweb",
+  "version": "1.0.0",
+  "description": "A web-based Pomodoro timer that runs in your browser tab to help you stay focused and productive.",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/docholypancake/pomodoroWeb.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/docholypancake/pomodoroWeb/issues"
+  },
+  "homepage": "https://github.com/docholypancake/pomodoroWeb#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.3.0"
+  }
+}
