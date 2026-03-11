@@ -57,7 +57,7 @@
 
                 <!-- Session Counter -->
                 <div class="session-info">
-                    <p class="session-text">Session <span id="sessionCount">1</span> of 4</p>
+                    <p class="session-text">Pomodoro <span id="sessionCount">1</span> of <span id="sessionTotal">4</span></p>
                 </div>
             </div>
 
@@ -82,6 +82,11 @@
                     </div>
 
                     <div class="settings-group">
+                        <label class="settings-label" for="focusCycles">Focus Session Cycles</label>
+                        <input type="number" id="focusCycles" class="settings-input" value="1" min="1" max="12">
+                    </div>
+
+                    <div class="settings-group">
                         <label class="settings-label checkbox-label">
                             <input type="checkbox" id="soundEnabled" class="settings-checkbox" checked>
                             <span>Sound Notifications</span>
@@ -101,6 +106,7 @@
     <th:block th:replace="~{fragments/footer :: footer}"></th:block>
 
     <!-- Scripts -->
+    <script th:src="@{/js/timer-state.js}"></script>
     <script th:src="@{/js/settings.js}"></script>
     <script th:src="@{/js/timer.js}"></script>
 </body>

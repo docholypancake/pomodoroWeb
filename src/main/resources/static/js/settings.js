@@ -8,49 +8,42 @@ const pomodoroInput = document.getElementById("pomodoroTime");
 const shortBreakInput = document.getElementById("shortBreakTime");
 const longBreakInput = document.getElementById("longBreakTime");
 const soundEnabledInput = document.getElementById("soundEnabled");
+const focusCyclesInput = document.getElementById("focusCycles");
 
-const SETTINGS_KEY = "pomodoroSettings";
-
-function getDefaultSettings() {
-    return {
-        pomodoro: 25,
-        shortBreak: 5,
-        longBreak: 15,
-        soundEnabled: true
-    };
-}
+const timerStateStore = window.PomodoroTimerState;
 
 function readSettingsFromInputs() {
-    return {
+    return timerStateStore.normalizeSettings({
         pomodoro: Number(pomodoroInput.value),
         shortBreak: Number(shortBreakInput.value),
         longBreak: Number(longBreakInput.value),
-        soundEnabled: soundEnabledInput.checked
-    };
+        soundEnabled: soundEnabledInput.checked,
+        focusCycles: Number(focusCyclesInput.value)
+    });
 }
 
 function loadSettings() {
-    const saved = localStorage.getItem(SETTINGS_KEY);
-    const settings = saved ? JSON.parse(saved) : getDefaultSettings();
+    const settings = timerStateStore.loadSettings();
 
     pomodoroInput.value = settings.pomodoro;
     shortBreakInput.value = settings.shortBreak;
     longBreakInput.value = settings.longBreak;
     soundEnabledInput.checked = settings.soundEnabled;
+    focusCyclesInput.value = settings.focusCycles;
 
     return settings;
 }
 
 function saveSettings() {
     const settings = readSettingsFromInputs();
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    timerStateStore.saveSettings(settings);
     document.dispatchEvent(new CustomEvent("settings:updated", { detail: settings }));
     closeSettings();
 }
 
 function applySettingsLive() {
     const settings = readSettingsFromInputs();
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    timerStateStore.saveSettings(settings);
     document.dispatchEvent(new CustomEvent("settings:updated", { detail: settings }));
 }
 
@@ -72,8 +65,7 @@ settingsToggle?.addEventListener("click", () => {
 saveSettingsBtn?.addEventListener("click", saveSettings);
 cancelSettingsBtn?.addEventListener("click", closeSettings);
 
-// Live updates when inputs change
-[pomodoroInput, shortBreakInput, longBreakInput].forEach(input => {
+[pomodoroInput, shortBreakInput, longBreakInput, focusCyclesInput].forEach(input => {
     input.addEventListener("input", applySettingsLive);
 });
 soundEnabledInput.addEventListener("change", applySettingsLive);
