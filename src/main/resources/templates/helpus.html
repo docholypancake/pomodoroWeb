@@ -1,29 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"  xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Help Us - Pomodoro Web</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" href="assets/icon/icon.ico" type="image/x-icon">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="icon" th:href="@{/assets/icon/icon.ico}" type="image/x-icon">
 </head>
 <body>
-    <!-- Header Section --> 
-    <header class="header">
-        <div class="header-container">
-            <div class="logo-container">
-                <a href="index.html" class="logo-link">
-                    <img src="assets/icon/icon.ico" alt="Pomodoro Logo" class="logo-img">
-                </a>
-                <h1 class="logo">Pomodoro Timer</h1>
-            </div>
-            <nav class="nav">
-                <a class="nav-btn" href="index.html">Timer</a>
-                <a class="nav-btn" href="about.html">About</a>
-                <a class="nav-btn nav-btn--active" href="helpus.html">Help Us</a>
-            </nav>
-        </div>
-    </header>
+    <!-- Header Section -->
+    <th:block th:replace="~{fragments/header :: header('helpus')}"></th:block>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -37,7 +23,7 @@
             <h3>Support the Development</h3>
             <p>If you would like to support the development of this app, you can donate via Monobank. Scan the QR code below or <a href="https://send.monobank.ua/jar/8NC2t9efmF" target="_blank" rel="noopener noreferrer">follow this link</a></p>
             <div class="qr-code-container">
-                <img src="assets/pictures/monobank.jpeg" alt="QR Code for Monobank Donation" class="qr-code">
+                <img th:src="@{/assets/pictures/monobank.jpeg}" alt="QR Code for Monobank Donation" class="qr-code">
             </div>
 
             <p>
@@ -48,14 +34,6 @@
     </main>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="footer-container">
-            <p class="footer-text">
-                &copy; 2026 Pomodoro Web | 
-                <a href="https://github.com/docholypancake/pomodoroWeb/issues" class="footer-link">GitHub</a>
-            </p>
-            <p class="footer-note">Stay focused, stay productive</p>
-        </div>
-    </footer>
+    <th:block th:replace="~{fragments/footer :: footer}"></th:block>
 </body>
 </html>
