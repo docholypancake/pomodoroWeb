@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About - Pomodoro Web</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="icon" href="/assets/icon/icon.ico" type="image/x-icon">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="icon" th:href="@{/assets/icon/icon.ico}" type="image/x-icon">
 </head>
 <body>
     <!-- Header Section --> 
@@ -55,6 +55,6 @@
     </main>
 
     <!-- Footer -->
-    <th:block th:replace="~{fragments/footer}"></th:block>
+    <th:block th:replace="~{fragments/footer :: footer}"></th:block>
 </body>
 </html>

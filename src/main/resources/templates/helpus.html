@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Help Us - Pomodoro Web</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="icon" href="/assets/icon/icon.ico" type="image/x-icon">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="icon" th:href="@{/assets/icon/icon.ico}" type="image/x-icon">
 </head>
 <body>
     <!-- Header Section -->
@@ -23,7 +23,7 @@
             <h3>Support the Development</h3>
             <p>If you would like to support the development of this app, you can donate via Monobank. Scan the QR code below or <a href="https://send.monobank.ua/jar/8NC2t9efmF" target="_blank" rel="noopener noreferrer">follow this link</a></p>
             <div class="qr-code-container">
-                <img src="/assets/pictures/monobank.jpeg" alt="QR Code for Monobank Donation" class="qr-code">
+                <img th:src="@{/assets/pictures/monobank.jpeg}" alt="QR Code for Monobank Donation" class="qr-code">
             </div>
 
             <p>
@@ -34,6 +34,6 @@
     </main>
 
     <!-- Footer -->
-    <th:block th:replace="~{fragments/footer}"></th:block>
+    <th:block th:replace="~{fragments/footer :: footer}"></th:block>
 </body>
 </html>

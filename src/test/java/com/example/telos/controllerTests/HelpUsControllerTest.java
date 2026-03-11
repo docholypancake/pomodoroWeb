@@ -17,9 +17,9 @@ public class HelpUsControllerTest {
     MockMvc mockMvc;
 
     @Test
-    void shouldReturnAboutPage() throws Exception{
-        mockMvc.perform(get("/about"))
+    void shouldReturnHelpUsPage() throws Exception{
+        mockMvc.perform(get("/helpus"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("about"));
+                .andExpect(view().name("helpus"));
     }
 }
