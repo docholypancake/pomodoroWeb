@@ -1,8 +1,8 @@
 <header class="header" xmlns:th="http://www.thymeleaf.org" th:fragment="header(activePage)">
     <div class="header-container">
         <div class="logo-container">
-            <a href="/" class="logo-link">
-                <img src="/assets/icon/icon.ico" alt="Pomodoro Logo" class="logo-img">
+            <a th:href="@{/}" class="logo-link">
+                <img th:src="@{/assets/icon/icon.ico}" alt="Pomodoro Logo" class="logo-img">
             </a>
             <h1 class="logo">Pomodoro Timer</h1>
         </div>
