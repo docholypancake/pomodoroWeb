@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,22 +8,8 @@
     <link rel="icon" href="/assets/icon/icon.ico" type="image/x-icon">
 </head>
 <body>
-    <!-- Header Section --> 
-    <header class="header">
-        <div class="header-container">
-           <div class="logo-container">
-                <a href="/" class="logo-link">
-                    <img src="/assets/icon/icon.ico" alt="Pomodoro Logo" class="logo-img">
-                </a>
-                <h1 class="logo">Pomodoro Timer</h1>
-            </div>
-            <nav class="nav">
-                <a class="nav-btn nav-btn--active" href="/">Timer</a>
-                <a class="nav-btn" href="/about">About</a>
-                <a class="nav-btn" href="/helpus">Help Us</a>
-            </nav>
-        </div>
-    </header>
+    <!-- Header Section -->
+    <th:block th:replace="~{fragments/header :: header('home')}"></th:block>
 
     <!-- Main Content -->
     <main class="main-content">
