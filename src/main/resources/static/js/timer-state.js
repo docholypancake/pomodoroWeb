@@ -43,6 +43,16 @@
         return safeSettings[getSettingsKey(mode)] * 60;
     }
 
+    function isFocusSessionFinished(state, settings) {
+        const safeSettings = normalizeSettings(settings);
+        const safeState = normalizeTimerState(state, safeSettings);
+        return !safeState.isRunning
+            && safeState.currentMode === "pomodoro"
+            && safeState.completedPomodorosInCycle === 0
+            && safeState.completedFocusCycles >= safeSettings.focusCycles
+            && safeState.remainingSeconds === getModeDurationSeconds(safeSettings, "pomodoro");
+    }
+
     function getDefaultTimerState(settings) {
         return {
             currentMode: "pomodoro",
@@ -184,15 +194,31 @@
             };
         }
 
-        const remainingSeconds = getModeDurationSeconds(settings, "pomodoro");
-        return {
-            currentMode: "pomodoro",
-            isRunning: true,
-            endTime: completedAt + (remainingSeconds * 1000),
-            remainingSeconds,
-            completedPomodorosInCycle: 0,
-            completedFocusCycles: state.completedFocusCycles + 1
-        };
+        if (state.currentMode === "long-break") {
+            const completedFocusCycles = state.completedFocusCycles + 1;
+            if (completedFocusCycles >= settings.focusCycles) {
+                return {
+                    currentMode: "pomodoro",
+                    isRunning: false,
+                    endTime: null,
+                    remainingSeconds: getModeDurationSeconds(settings, "pomodoro"),
+                    completedPomodorosInCycle: 0,
+                    completedFocusCycles
+                };
+            }
+
+            const remainingSeconds = getModeDurationSeconds(settings, "pomodoro");
+            return {
+                currentMode: "pomodoro",
+                isRunning: true,
+                endTime: completedAt + (remainingSeconds * 1000),
+                remainingSeconds,
+                completedPomodorosInCycle: 0,
+                completedFocusCycles
+            };
+        }
+
+        return getDefaultTimerState(settings);
     }
 
     function hydrateTimerState(state, settings, now = Date.now()) {
@@ -216,7 +242,11 @@
 
     function startTimerState(state, settings, now = Date.now()) {
         const safeSettings = normalizeSettings(settings);
-        const syncedState = hydrateTimerState(state, safeSettings, now);
+        let syncedState = hydrateTimerState(state, safeSettings, now);
+
+        if (isFocusSessionFinished(syncedState, safeSettings)) {
+            syncedState = getDefaultTimerState(safeSettings);
+        }
 
         if (syncedState.isRunning) {
             return syncedState;
@@ -305,6 +335,48 @@
         return Math.max(1, completedPomodorosInCycle);
     }
 
+    function getCurrentFocusCycleNumber(state, settings) {
+        const safeSettings = normalizeSettings(settings);
+        const safeState = normalizeTimerState(state, safeSettings);
+
+        if (isFocusSessionFinished(safeState, safeSettings)) {
+            return safeSettings.focusCycles;
+        }
+
+        return Math.min(safeState.completedFocusCycles + 1, safeSettings.focusCycles);
+    }
+
+    function getProjectedSessionEndTime(state, settings, now = Date.now()) {
+        const safeSettings = normalizeSettings(settings);
+        let simulatedState = hydrateTimerState(state, safeSettings, now);
+
+        if (isFocusSessionFinished(simulatedState, safeSettings)) {
+            return null;
+        }
+
+        if (!simulatedState.isRunning) {
+            simulatedState = startTimerState(simulatedState, safeSettings, now);
+        }
+
+        let guard = 0;
+        while (guard < 500) {
+            if (!simulatedState.isRunning || !simulatedState.endTime) {
+                return null;
+            }
+
+            const segmentEndTime = simulatedState.endTime;
+            const nextState = transitionAfterCompletion(simulatedState, safeSettings, segmentEndTime);
+            if (!nextState.isRunning) {
+                return segmentEndTime;
+            }
+
+            simulatedState = nextState;
+            guard += 1;
+        }
+
+        return null;
+    }
+
     function areStatesEqual(firstState, secondState) {
         return firstState.currentMode === secondState.currentMode
             && firstState.isRunning === secondState.isRunning
@@ -336,6 +408,9 @@
         applySettingsToTimerState,
         getRemainingSeconds,
         getCurrentPomodoroNumber,
+        getCurrentFocusCycleNumber,
+        getProjectedSessionEndTime,
+        isFocusSessionFinished,
         getPomodorosPerCycle: () => POMODOROS_PER_CYCLE,
         areStatesEqual
     };

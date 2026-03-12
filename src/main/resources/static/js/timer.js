@@ -5,6 +5,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const resetBtn = document.getElementById("resetBtn");
     const sessionCountEl = document.getElementById("sessionCount");
     const sessionTotalEl = document.getElementById("sessionTotal");
+    const focusCycleCountEl = document.getElementById("focusCycleCount");
+    const focusCycleTotalEl = document.getElementById("focusCycleTotal");
+    const sessionProjectionTextEl = document.getElementById("sessionProjectionText");
     const timerLabel = document.querySelector(".timer-label");
     const progressBar = document.querySelector(".timer-progress-bar");
     const modeLabels = document.querySelectorAll(".mode-label");
@@ -17,6 +20,10 @@ document.addEventListener("DOMContentLoaded", () => {
         "short-break": "Short Break",
         "long-break": "Long Break"
     };
+    const sessionTimeFormatter = new Intl.DateTimeFormat(undefined, {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
 
     let timerWorker = null;
     try {
@@ -89,6 +96,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const remainingSeconds = timerStateStore.getRemainingSeconds(timerState);
         const minutes = Math.floor(remainingSeconds / 60);
         const seconds = remainingSeconds % 60;
+        const currentFocusCycle = timerStateStore.getCurrentFocusCycleNumber(timerState, settings);
+        const projectedSessionEndTime = timerStateStore.getProjectedSessionEndTime(timerState, settings);
+        const focusSessionFinished = timerStateStore.isFocusSessionFinished(timerState, settings);
 
         timeDisplay.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
         timerLabel.textContent = labelText[timerState.currentMode] || "Timer";
@@ -96,6 +106,21 @@ document.addEventListener("DOMContentLoaded", () => {
         sessionCountEl.textContent = String(timerStateStore.getCurrentPomodoroNumber(timerState));
         if (sessionTotalEl) {
             sessionTotalEl.textContent = String(timerStateStore.getPomodorosPerCycle());
+        }
+        if (focusCycleCountEl) {
+            focusCycleCountEl.textContent = String(currentFocusCycle);
+        }
+        if (focusCycleTotalEl) {
+            focusCycleTotalEl.textContent = String(settings.focusCycles);
+        }
+        if (sessionProjectionTextEl) {
+            if (focusSessionFinished) {
+                sessionProjectionTextEl.textContent = "Focus session complete";
+            } else if (projectedSessionEndTime) {
+                sessionProjectionTextEl.textContent = `Session ends at ${sessionTimeFormatter.format(new Date(projectedSessionEndTime))}`;
+            } else {
+                sessionProjectionTextEl.textContent = "Session ends at --:--";
+            }
         }
 
         modeLabels.forEach(label => {

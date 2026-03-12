@@ -560,6 +560,19 @@ a:focus {
     border-color: var(--color-primary);
 }
 
+.settings-input--invalid,
+.settings-input[aria-invalid="true"] {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.18);
+}
+
+.settings-error {
+    color: var(--color-primary-light);
+    font-size: var(--font-size-sm);
+    line-height: 1.4;
+    margin-top: calc(var(--spacing-xs) * -1);
+}
+
 .settings-checkbox {
     width: 20px;
     height: 20px;
@@ -578,12 +591,21 @@ a:focus {
 .session-info {
     text-align: center;
     margin-top: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
 }
 
 .session-text {
     font-size: var(--font-size-lg);
     color: var(--color-text-muted);
     font-weight: 500;
+}
+
+.session-subtext {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    letter-spacing: 0.02em;
 }
 
 #sessionCount {

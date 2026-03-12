@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pomodoro Web</title>
-    <link rel="stylesheet" th:href="@{/css/style.css(v=4)}">
-    <link rel="icon" th:href="@{/assets/icon/icon.ico(v=4)}" type="image/x-icon">
+    <link rel="stylesheet" th:href="@{/css/style.css(v=6)}">
+    <link rel="icon" th:href="@{/assets/icon/icon.ico(v=6)}" type="image/x-icon">
 </head>
 <body>
     <!-- Header Section -->
@@ -58,6 +58,8 @@
                 <!-- Session Counter -->
                 <div class="session-info">
                     <p class="session-text">Pomodoro <span id="sessionCount">1</span> of <span id="sessionTotal">4</span></p>
+                    <p class="session-subtext">Focus cycle <span id="focusCycleCount">1</span> of <span id="focusCycleTotal">1</span></p>
+                    <p class="session-subtext" id="sessionProjectionText">Session ends at --:--</p>
                 </div>
             </div>
 
@@ -93,6 +95,8 @@
                         </label>
                     </div>
 
+                    <p id="settingsError" class="settings-error hidden" aria-live="polite"></p>
+
                     <div class="settings-actions">
                         <button class="btn btn--small btn--primary" id="saveSettings">Save & Close</button>
                         <button class="btn btn--small btn--secondary" id="cancelSettings">Cancel</button>
@@ -106,9 +110,9 @@
     <th:block th:replace="~{fragments/footer :: footer}"></th:block>
 
     <!-- Scripts -->
-    <script th:src="@{/js/timer-state.js(v=4)}"></script>
-    <script th:src="@{/js/mini-timer.js(v=4)}"></script>
-    <script th:src="@{/js/settings.js(v=4)}"></script>
-    <script th:src="@{/js/timer.js(v=4)}"></script>
+    <script th:src="@{/js/timer-state.js(v=6)}"></script>
+    <script th:src="@{/js/mini-timer.js(v=6)}"></script>
+    <script th:src="@{/js/settings.js(v=6)}"></script>
+    <script th:src="@{/js/timer.js(v=6)}"></script>
 </body>
 </html>
