@@ -9,7 +9,7 @@
         <nav class="nav">
             <a class="nav-btn" th:classappend="${activePage == 'home'} ? ' nav-btn--active' : ''" th:href="@{/}">Timer</a>
             <a class="nav-btn" th:classappend="${activePage == 'about'} ? ' nav-btn--active' : ''" th:href="@{/about}">About</a>
-            <a class="nav-btn" th:classappend="${activePage == 'helpus'} ? ' nav-btn--active' : ''" th:href="@{/helpus}">Help Us</a>
+            <a class="nav-btn nav-btn--accent" th:classappend="${activePage == 'helpus'} ? ' nav-btn--active' : ''" th:href="@{/helpus}">Help Us</a>
         </nav>
     </div>
 </header>

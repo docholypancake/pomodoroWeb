@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pomodoro Web</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <link rel="icon" th:href="@{/assets/icon/icon.ico}" type="image/x-icon">
+    <link rel="stylesheet" th:href="@{/css/style.css(v=2)}">
+    <link rel="icon" th:href="@{/assets/icon/icon.ico(v=2)}" type="image/x-icon">
 </head>
 <body>
     <!-- Header Section -->
@@ -106,8 +106,8 @@
     <th:block th:replace="~{fragments/footer :: footer}"></th:block>
 
     <!-- Scripts -->
-    <script th:src="@{/js/timer-state.js}"></script>
-    <script th:src="@{/js/settings.js}"></script>
-    <script th:src="@{/js/timer.js}"></script>
+    <script th:src="@{/js/timer-state.js(v=2)}"></script>
+    <script th:src="@{/js/settings.js(v=2)}"></script>
+    <script th:src="@{/js/timer.js(v=2)}"></script>
 </body>
 </html>

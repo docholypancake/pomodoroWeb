@@ -28,6 +28,10 @@ document.addEventListener("DOMContentLoaded", () => {
     let settings = timerStateStore.loadSettings();
     let timerState = timerStateStore.loadTimerState(settings);
 
+    if (!timerState.isRunning && timerState.currentMode !== "pomodoro") {
+        timerState = timerStateStore.resetTimerState(timerState, settings);
+    }
+
     function persistTimerState() {
         timerState = timerStateStore.saveTimerState(timerState, settings);
     }
@@ -158,16 +162,6 @@ document.addEventListener("DOMContentLoaded", () => {
         timerState = timerStateStore.resetTimerState(timerState, settings);
         persistTimerState();
         render();
-    });
-
-    modeLabels.forEach(label => {
-        label.addEventListener("click", () => {
-            if (timerState.isRunning) return;
-
-            timerState = timerStateStore.setModeState(timerState, settings, label.dataset.mode);
-            persistTimerState();
-            render();
-        });
     });
 
     document.addEventListener("settings:updated", (event) => {

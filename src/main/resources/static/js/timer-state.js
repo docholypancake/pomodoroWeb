@@ -128,11 +128,11 @@
 
         try {
             const hydratedState = hydrateTimerState(JSON.parse(saved), safeSettings, Date.now());
-
-            if (!hydratedState.isRunning
+            const isIdleBreakState = !hydratedState.isRunning
                 && hydratedState.currentMode !== "pomodoro"
-                && hydratedState.completedPomodorosInCycle === 0
-                && hydratedState.completedFocusCycles === 0) {
+                && hydratedState.remainingSeconds === getModeDurationSeconds(safeSettings, hydratedState.currentMode);
+
+            if (isIdleBreakState) {
                 return getDefaultTimerState(safeSettings);
             }
 
