@@ -127,7 +127,16 @@
         }
 
         try {
-            return hydrateTimerState(JSON.parse(saved), safeSettings, Date.now());
+            const hydratedState = hydrateTimerState(JSON.parse(saved), safeSettings, Date.now());
+
+            if (!hydratedState.isRunning
+                && hydratedState.currentMode !== "pomodoro"
+                && hydratedState.completedPomodorosInCycle === 0
+                && hydratedState.completedFocusCycles === 0) {
+                return getDefaultTimerState(safeSettings);
+            }
+
+            return hydratedState;
         } catch (error) {
             console.warn("Failed to parse saved timer state.", error);
             return getDefaultTimerState(safeSettings);
@@ -246,15 +255,7 @@
 
     function resetTimerState(state, settings) {
         const safeSettings = normalizeSettings(settings);
-        const syncedState = normalizeTimerState(state, safeSettings);
-        return {
-            currentMode: syncedState.currentMode,
-            isRunning: false,
-            endTime: null,
-            remainingSeconds: getModeDurationSeconds(safeSettings, syncedState.currentMode),
-            completedPomodorosInCycle: 0,
-            completedFocusCycles: 0
-        };
+        return getDefaultTimerState(safeSettings);
     }
 
     function setModeState(state, settings, mode) {
