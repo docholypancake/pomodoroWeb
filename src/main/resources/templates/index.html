@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pomodoro Web</title>
+    <title>Telos</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="icon" th:href="@{/assets/icon/icon.ico}" type="image/x-icon">
 </head>
@@ -13,9 +13,18 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <div class="container">
+        <div class="container container--timer">
+            <div class="page-intro page-intro--center">
+                <p class="eyebrow">Focus Rhythm</p>
+                <h2 class="page-title">Deep work with a visible finish line.</h2>
+                <p class="page-lead">
+                    Telos keeps the session structure clear, shows when your focus block ends,
+                    and stays in sync across the whole app.
+                </p>
+            </div>
+
             <!-- Timer Section -->
-            <div id="timerSection" class="section-view">
+            <div id="timerSection" class="section-view timer-surface">
                 <!-- Timer Mode Tabs -->
                 <div class="timer-modes">
                     <span class="mode-label mode-label--active" data-mode="pomodoro">Pomodoro</span>
@@ -57,18 +66,23 @@
 
                 <!-- Session Counter -->
                 <div class="session-info">
-                    <p class="session-text">Session <span id="sessionCount">1</span> of 4</p>
+                    <p class="session-text">Pomodoro <span id="sessionCount">1</span> of <span id="sessionTotal">4</span></p>
+                    <p class="session-subtext">Focus cycle <span id="focusCycleCount">1</span> of <span id="focusCycleTotal">1</span></p>
+                    <p class="session-subtext" id="sessionProjectionText">Session ends at --:--</p>
                 </div>
             </div>
 
             <!-- Settings Section -->
-            <div id="settingsSection" class="section-view hidden">
+            <div id="settingsSection" class="section-view hidden settings-surface">
                 <div class="settings-content">
                     <h3 class="settings-title">Timer Settings</h3>
+                    <p class="settings-copy">
+                        Shape the length of your work, breaks, and overall focus session.
+                    </p>
                     
                     <div class="settings-group">
                         <label class="settings-label" for="pomodoroTime">Pomodoro Duration (minutes)</label>
-                        <input type="number" id="pomodoroTime" class="settings-input" value="25" min="1" max="60">
+                        <input type="number" id="pomodoroTime" class="settings-input" value="25" min="1" max="120">
                     </div>
 
                     <div class="settings-group">
@@ -78,7 +92,12 @@
 
                     <div class="settings-group">
                         <label class="settings-label" for="longBreakTime">Long Break (minutes)</label>
-                        <input type="number" id="longBreakTime" class="settings-input" value="15" min="1" max="60">
+                        <input type="number" id="longBreakTime" class="settings-input" value="15" min="1" max="80">
+                    </div>
+
+                    <div class="settings-group">
+                        <label class="settings-label" for="focusCycles">Focus Session Cycles</label>
+                        <input type="number" id="focusCycles" class="settings-input" value="1" min="1" max="12">
                     </div>
 
                     <div class="settings-group">
@@ -87,6 +106,8 @@
                             <span>Sound Notifications</span>
                         </label>
                     </div>
+
+                    <p id="settingsError" class="settings-error hidden" aria-live="polite"></p>
 
                     <div class="settings-actions">
                         <button class="btn btn--small btn--primary" id="saveSettings">Save & Close</button>
@@ -101,6 +122,9 @@
     <th:block th:replace="~{fragments/footer :: footer}"></th:block>
 
     <!-- Scripts -->
+    <script th:src="@{/js/timer-state.js}"></script>
+    <script th:src="@{/js/mini-timer.js}"></script>
+    <script th:src="@{/js/auth-state.js}"></script>
     <script th:src="@{/js/settings.js}"></script>
     <script th:src="@{/js/timer.js}"></script>
 </body>
