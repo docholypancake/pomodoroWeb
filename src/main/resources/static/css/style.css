@@ -1152,3 +1152,49 @@ a:focus {
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-md);
 }
+
+.error-btn {
+    width: 200px;
+    margin: 0 auto;
+    justify-content: center;
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.error-btn:visited {
+    color: var(--color-text);
+}
+
+.error-code {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+}
+
+.error-digit {
+    font-size: 6rem;
+    font-weight: 700;
+    color: var(--color-primary-light);
+}
+
+.error-clock {
+    width: 90px;
+    height: auto;
+}
+
+.error-clock {
+    fill: var(--color-primary-light);
+    position: relative;
+    top: 10px;
+}
+
+.error-title {
+    margin-bottom:1rem;
+}
+
+.error-description {
+    margin-bottom:2rem;
+    color:var(--color-text-muted);
+}
