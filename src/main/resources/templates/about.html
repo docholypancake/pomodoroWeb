@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About - Pomodoro Web</title>
+    <title>About - Telos</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="icon" th:href="@{/assets/icon/icon.ico}" type="image/x-icon">
 </head>
@@ -14,47 +14,22 @@
     <!-- Main Content -->
     <main class="main-content">
         <div class="container">
-            <h2>About This App</h2>
+            <h2>About Telos</h2>
             <p>
-                Hey! I see you’ve noticed this web app, so let me share how it works
-                and who made it.
-            </p>
-
-            <h3>How It Works (and Why It’s Better)</h3>
-            <p>
-                The Pomodoro Technique is a simple focus method: you work in short,
-                timed sessions and take quick breaks in between. It’s more effective
-                than a regular timer because it builds rest into your workflow, keeps
-                you energized, and helps you avoid burnout.
-            </p>
-
-            <h3>Quick Start</h3>
-            <ol>
-                <li>Pick a task you want to focus on.</li>
-                <li>Hit <strong>Start</strong> and stay focused until time is up.</li>
-                <li>Take a short break when the timer ends.</li>
-                <li>After a few sessions, enjoy a longer break.</li>
-            </ol>
-
-            <h3>Make It Yours</h3>
-            <p>
-                Open <strong>Settings</strong> to customize the Pomodoro length, short
-                break, and long break times. You can also turn sound alerts on or off.
-                The session counter helps you track when a longer break is due.
-            </p>
-
-            <h3>About Me</h3>
-            <img src="/assets/pictures/author.jpg" alt="Author" class="about-photo">
-            <p>
-                I'm Oleh, a developer who created this app to help myself and others who have trouble staying focused on tasks. I'm a student at the Lviv Polytechnic National University, and I enjoy building tools that make life easier. This project is open-source, so feel free to check out the code on GitHub and contribute if you wish!
+                We will tell you about this a bit later.
             </p>
             <p>
-                If you wish to help or thank me, visit the <strong>Help Us</strong> page to see how you can support the development of this app. Your feedback and contributions are always welcome!
+                The product and the team are evolving right now, so this page will be
+                updated once the new story and direction are ready to share.
             </p>
         </div>
     </main>
 
     <!-- Footer -->
     <th:block th:replace="~{fragments/footer :: footer}"></th:block>
+
+    <script th:src="@{/js/timer-state.js}"></script>
+    <script th:src="@{/js/mini-timer.js}"></script>
+    <script th:src="@{/js/auth-state.js}"></script>
 </body>
 </html>
