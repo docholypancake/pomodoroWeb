@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Pomodoro Web</title>
+    <link rel="stylesheet" th:href="@{/css/style.css(v=9)}">
+    <link rel="icon" th:href="@{/assets/icon/icon.ico(v=9)}" type="image/x-icon">
+</head>
+<body>
+    <th:block th:replace="~{fragments/header :: header('login')}"></th:block>
+
+    <main class="main-content">
+        <div class="container auth-shell">
+            <section class="auth-card">
+                <p class="eyebrow">Account Access</p>
+                <h2 class="auth-title">Login</h2>
+                <p class="auth-description">
+                    Use this screen to sign in once the backend auth endpoint is connected.
+                </p>
+
+                <form id="loginForm" class="auth-form" data-auth-form="login" novalidate>
+                    <div class="auth-field">
+                        <label class="settings-label" for="loginIdentifier">Email or Username</label>
+                        <input type="text" id="loginIdentifier" class="settings-input auth-input" name="identifier" autocomplete="username">
+                        <p class="form-field-error hidden" data-error-for="loginIdentifier"></p>
+                    </div>
+
+                    <div class="auth-field">
+                        <label class="settings-label" for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" class="settings-input auth-input" name="password" autocomplete="current-password">
+                        <p class="form-field-error hidden" data-error-for="loginPassword"></p>
+                    </div>
+
+                    <p class="form-message hidden" data-form-message aria-live="polite"></p>
+
+                    <button type="submit" class="btn btn--primary auth-submit">Continue</button>
+                </form>
+            </section>
+        </div>
+    </main>
+
+    <th:block th:replace="~{fragments/footer :: footer}"></th:block>
+
+    <script th:src="@{/js/timer-state.js(v=9)}"></script>
+    <script th:src="@{/js/mini-timer.js(v=9)}"></script>
+    <script th:src="@{/js/auth-state.js(v=9)}"></script>
+    <script th:src="@{/js/auth-forms.js(v=9)}"></script>
+</body>
+</html>

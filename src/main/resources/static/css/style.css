@@ -101,6 +101,15 @@ a:focus {
     gap: var(--spacing-md);
 }
 
+.header-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
 .logo-container {
     display: flex;
     align-items: center;
@@ -140,7 +149,6 @@ a:focus {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
-    margin-left: auto;
     text-decoration: none;
     color: var(--color-text);
     transition: border-color var(--transition-normal), transform var(--transition-normal), box-shadow var(--transition-normal);
@@ -215,6 +223,78 @@ a:focus {
 .nav {
     display: flex;
     gap: var(--spacing-sm);
+}
+
+.auth-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.auth-logout {
+    min-width: auto;
+    white-space: nowrap;
+}
+
+.profile-entry {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.45rem 0.8rem 0.45rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--color-text);
+    text-decoration: none;
+    transition: border-color var(--transition-normal), background-color var(--transition-normal), transform var(--transition-normal);
+}
+
+.profile-entry:hover,
+.profile-entry:focus {
+    color: var(--color-text);
+    border-color: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
+}
+
+.profile-entry--active {
+    border-color: rgba(231, 76, 60, 0.45);
+    background: rgba(231, 76, 60, 0.12);
+}
+
+.profile-entry__avatar {
+    width: 2.4rem;
+    height: 2.4rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(231, 76, 60, 0.16);
+    color: var(--color-primary-light);
+}
+
+.profile-entry[data-authenticated="true"] .profile-entry__avatar {
+    background: rgba(46, 204, 113, 0.16);
+    color: #8ff0b3;
+}
+
+.profile-entry__icon {
+    width: 1.2rem;
+    height: 1.2rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.profile-entry__label {
+    max-width: 8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
 }
 
 .nav-btn {
@@ -606,6 +686,105 @@ a:focus {
     font-size: var(--font-size-sm);
     color: var(--color-text-muted);
     letter-spacing: 0.02em;
+}
+
+/* ===== AUTH PAGES ===== */
+.auth-shell,
+.profile-shell {
+    max-width: 940px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.eyebrow {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    color: var(--color-primary-light);
+}
+
+.auth-title {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    line-height: 1.1;
+}
+
+.auth-description {
+    color: var(--color-text-muted);
+    max-width: 42rem;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    background: rgba(26, 26, 26, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: var(--shadow-md);
+}
+
+.auth-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.auth-input {
+    width: 100%;
+}
+
+.auth-submit {
+    justify-content: center;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.profile-toolbar {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.profile-panel {
+    height: 100%;
+}
+
+.profile-panel-title {
+    font-size: var(--font-size-lg);
+}
+
+.form-field-error {
+    color: var(--color-primary-light);
+    font-size: var(--font-size-sm);
+}
+
+.form-message {
+    border-radius: var(--radius-md);
+    padding: 0.8rem 1rem;
+    font-size: var(--font-size-sm);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-muted);
+}
+
+.form-message--success {
+    background: rgba(46, 204, 113, 0.12);
+    color: #8ff0b3;
+}
+
+.form-message--error {
+    background: rgba(231, 76, 60, 0.14);
+    color: #ff9588;
 }
 
 #sessionCount {
