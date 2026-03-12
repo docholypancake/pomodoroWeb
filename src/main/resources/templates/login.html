@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Pomodoro Web</title>
-    <link rel="stylesheet" th:href="@{/css/style.css(v=9)}">
-    <link rel="icon" th:href="@{/assets/icon/icon.ico(v=9)}" type="image/x-icon">
+    <title>Login - Telos</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="icon" th:href="@{/assets/icon/icon.ico}" type="image/x-icon">
 </head>
 <body>
     <th:block th:replace="~{fragments/header :: header('login')}"></th:block>
 
     <main class="main-content">
         <div class="container auth-shell">
-            <section class="auth-card">
+            <section class="auth-card auth-card--compact">
                 <p class="eyebrow">Account Access</p>
                 <h2 class="auth-title">Login</h2>
                 <p class="auth-description">
@@ -42,9 +42,9 @@
 
     <th:block th:replace="~{fragments/footer :: footer}"></th:block>
 
-    <script th:src="@{/js/timer-state.js(v=9)}"></script>
-    <script th:src="@{/js/mini-timer.js(v=9)}"></script>
-    <script th:src="@{/js/auth-state.js(v=9)}"></script>
-    <script th:src="@{/js/auth-forms.js(v=9)}"></script>
+    <script th:src="@{/js/timer-state.js}"></script>
+    <script th:src="@{/js/mini-timer.js}"></script>
+    <script th:src="@{/js/auth-state.js}"></script>
+    <script th:src="@{/js/auth-forms.js}"></script>
 </body>
 </html>

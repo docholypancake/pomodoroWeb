@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pomodoro Web</title>
-    <link rel="stylesheet" th:href="@{/css/style.css(v=9)}">
-    <link rel="icon" th:href="@{/assets/icon/icon.ico(v=9)}" type="image/x-icon">
+    <title>Telos</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="icon" th:href="@{/assets/icon/icon.ico}" type="image/x-icon">
 </head>
 <body>
     <!-- Header Section -->
@@ -13,9 +13,18 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <div class="container">
+        <div class="container container--timer">
+            <div class="page-intro page-intro--center">
+                <p class="eyebrow">Focus Rhythm</p>
+                <h2 class="page-title">Deep work with a visible finish line.</h2>
+                <p class="page-lead">
+                    Telos keeps the session structure clear, shows when your focus block ends,
+                    and stays in sync across the whole app.
+                </p>
+            </div>
+
             <!-- Timer Section -->
-            <div id="timerSection" class="section-view">
+            <div id="timerSection" class="section-view timer-surface">
                 <!-- Timer Mode Tabs -->
                 <div class="timer-modes">
                     <span class="mode-label mode-label--active" data-mode="pomodoro">Pomodoro</span>
@@ -64,9 +73,12 @@
             </div>
 
             <!-- Settings Section -->
-            <div id="settingsSection" class="section-view hidden">
+            <div id="settingsSection" class="section-view hidden settings-surface">
                 <div class="settings-content">
                     <h3 class="settings-title">Timer Settings</h3>
+                    <p class="settings-copy">
+                        Shape the length of your work, breaks, and overall focus session.
+                    </p>
                     
                     <div class="settings-group">
                         <label class="settings-label" for="pomodoroTime">Pomodoro Duration (minutes)</label>
@@ -110,10 +122,10 @@
     <th:block th:replace="~{fragments/footer :: footer}"></th:block>
 
     <!-- Scripts -->
-    <script th:src="@{/js/timer-state.js(v=9)}"></script>
-    <script th:src="@{/js/mini-timer.js(v=9)}"></script>
-    <script th:src="@{/js/auth-state.js(v=9)}"></script>
-    <script th:src="@{/js/settings.js(v=9)}"></script>
-    <script th:src="@{/js/timer.js(v=9)}"></script>
+    <script th:src="@{/js/timer-state.js}"></script>
+    <script th:src="@{/js/mini-timer.js}"></script>
+    <script th:src="@{/js/auth-state.js}"></script>
+    <script th:src="@{/js/settings.js}"></script>
+    <script th:src="@{/js/timer.js}"></script>
 </body>
 </html>
