@@ -130,6 +130,88 @@ a:focus {
     transform: scale(1.1);
 }
 
+.mini-timer {
+    min-width: 190px;
+    padding: 0.75rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-lg);
+    background: linear-gradient(145deg, rgba(58, 58, 58, 0.96), rgba(28, 28, 28, 0.96));
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-left: auto;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: border-color var(--transition-normal), transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.mini-timer:hover,
+.mini-timer:focus {
+    color: var(--color-text);
+    border-color: rgba(255, 255, 255, 0.14);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
+}
+
+.mini-timer__mode {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.4px;
+}
+
+.mini-timer__time {
+    font-size: 1.65rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.mini-timer__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+
+.mini-timer__dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+    opacity: 0.75;
+}
+
+.mini-timer--pomodoro .mini-timer__time {
+    color: var(--color-primary-light);
+}
+
+.mini-timer--pomodoro .mini-timer__dot {
+    background-color: var(--color-primary);
+}
+
+.mini-timer--short-break .mini-timer__time {
+    color: var(--color-secondary);
+}
+
+.mini-timer--short-break .mini-timer__dot {
+    background-color: var(--color-secondary);
+}
+
+.mini-timer--long-break .mini-timer__time {
+    color: var(--color-success);
+}
+
+.mini-timer--long-break .mini-timer__dot {
+    background-color: var(--color-success);
+}
+
+.mini-timer[data-running="true"] .mini-timer__dot {
+    animation: pulse 1.6s ease-in-out infinite;
+}
+
 .nav {
     display: flex;
     gap: var(--spacing-sm);
@@ -553,6 +635,12 @@ a:focus {
     .header-container {
         flex-direction: column;
         text-align: center;
+    }
+
+    .mini-timer {
+        width: min(100%, 320px);
+        margin-left: 0;
+        align-items: center;
     }
     
     .nav {

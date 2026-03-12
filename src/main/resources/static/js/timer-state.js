@@ -13,21 +13,21 @@
 
     const VALID_MODES = ["pomodoro", "short-break", "long-break"];
 
-    function toPositiveInteger(value, fallback, min = 1) {
+    function toPositiveInteger(value, fallback, min = 1, max = Number.POSITIVE_INFINITY) {
         const parsed = Number.parseInt(value, 10);
         if (!Number.isFinite(parsed) || parsed < min) {
             return fallback;
         }
-        return parsed;
+        return Math.min(parsed, max);
     }
 
     function normalizeSettings(settings = {}) {
         return {
-            pomodoro: toPositiveInteger(settings.pomodoro, DEFAULT_SETTINGS.pomodoro),
-            shortBreak: toPositiveInteger(settings.shortBreak, DEFAULT_SETTINGS.shortBreak),
-            longBreak: toPositiveInteger(settings.longBreak, DEFAULT_SETTINGS.longBreak),
+            pomodoro: toPositiveInteger(settings.pomodoro, DEFAULT_SETTINGS.pomodoro, 1, 120),
+            shortBreak: toPositiveInteger(settings.shortBreak, DEFAULT_SETTINGS.shortBreak, 1, 30),
+            longBreak: toPositiveInteger(settings.longBreak, DEFAULT_SETTINGS.longBreak, 1, 80),
             soundEnabled: settings.soundEnabled !== false,
-            focusCycles: toPositiveInteger(settings.focusCycles, DEFAULT_SETTINGS.focusCycles)
+            focusCycles: toPositiveInteger(settings.focusCycles, DEFAULT_SETTINGS.focusCycles, 1, 12)
         };
     }
 
@@ -64,7 +64,7 @@
             ? rawRemainingSeconds
             : remainingFallback;
         const completedPomodorosInCycle = Math.min(
-            toPositiveInteger(state.completedPomodorosInCycle, 0, 0),
+            toPositiveInteger(state.completedPomodorosInCycle, 0, 0, POMODOROS_PER_CYCLE),
             POMODOROS_PER_CYCLE
         );
         const completedFocusCycles = toPositiveInteger(state.completedFocusCycles, 0, 0);
@@ -294,7 +294,7 @@
 
     function getCurrentPomodoroNumber(state) {
         const completedPomodorosInCycle = Math.min(
-            toPositiveInteger(state.completedPomodorosInCycle, 0, 0),
+            toPositiveInteger(state.completedPomodorosInCycle, 0, 0, POMODOROS_PER_CYCLE),
             POMODOROS_PER_CYCLE
         );
 

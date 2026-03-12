@@ -34,6 +34,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function persistTimerState() {
         timerState = timerStateStore.saveTimerState(timerState, settings);
+        document.dispatchEvent(new CustomEvent("timer:state-updated", {
+            detail: {
+                state: timerState,
+                settings
+            }
+        }));
     }
 
     function playSound(fileName) {

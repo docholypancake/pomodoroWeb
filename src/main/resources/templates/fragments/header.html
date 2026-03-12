@@ -12,6 +12,14 @@
             </a>
             <h1 class="logo">Pomodoro Timer</h1>
         </div>
+        <a th:if="${activePage != 'home'}" th:href="@{/}" class="mini-timer mini-timer--pomodoro" id="miniTimer" aria-label="Open timer page">
+            <span class="mini-timer__mode" id="miniTimerMode">Pomodoro</span>
+            <span class="mini-timer__time" id="miniTimerTime">25:00</span>
+            <span class="mini-timer__meta">
+                <span class="mini-timer__dot"></span>
+                <span class="mini-timer__status" id="miniTimerStatus">Ready</span>
+            </span>
+        </a>
         <nav class="nav">
             <a class="nav-btn" th:classappend="${activePage == 'home'} ? ' nav-btn--active' : ''" th:href="@{/}">Timer</a>
             <a class="nav-btn" th:classappend="${activePage == 'about'} ? ' nav-btn--active' : ''" th:href="@{/about}">About</a>
