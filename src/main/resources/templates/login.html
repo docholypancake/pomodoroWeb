@@ -21,6 +21,7 @@
 
                 <form id="loginForm" class="auth-form" data-auth-form="login" novalidate th:action="@{/login}" method="post">
                     <p th:if="${param.error}">Username or password is incorrect</p>
+                    <input type="hidden" th:name="${_csrf.getParameterName()}" th:value="${_csrf.getToken()}">
                     <div class="auth-field">
                         <label class="settings-label" for="loginIdentifier">Email or Username</label>
                         <input type="text" id="loginIdentifier" class="settings-input auth-input" name="username" autocomplete="username">
