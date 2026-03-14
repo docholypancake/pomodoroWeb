@@ -4,6 +4,7 @@ import com.example.telos.dto.UserPasswordDto;
 import com.example.telos.dto.UserPasswordResponseDto;
 import com.example.telos.dto.UserUsernameResponseDto;
 import com.example.telos.exception.NullEntityReferenceException;
+import com.example.telos.exception.UsernameAlreadyTakenException;
 import com.example.telos.model.User;
 import com.example.telos.repository.UserRepository;
 import com.example.telos.service.UserService;
@@ -81,10 +82,7 @@ public class UserServiceImpl implements UserService {
         User user = findByEmailOrUsername(login);
 
         if  (checkUser.isPresent() && !checkUser.get().getUserId().equals(user.getUserId()))
-            return new UserUsernameResponseDto(
-                    username,
-                    "Username is already taken"
-            );
+            throw new UsernameAlreadyTakenException("Username is already taken");
 
         user.setUsername(username.trim());
         update(user);

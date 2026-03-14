@@ -2,21 +2,16 @@ package com.example.telos.exception;
 
 
 import com.example.telos.dto.ErrorDto;
-import com.example.telos.service.UserTimeSettingsService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-@ControllerAdvice(annotations = RestController.class)
+@RestControllerAdvice
 public class RestExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(RestExceptionHandler.class);
 
@@ -44,6 +39,12 @@ public class RestExceptionHandler {
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
     public ErrorDto entityNotFoundExceptionHandler(HttpServletRequest request) {
         return new ErrorDto("API endpoint was not found");
+    }
+
+    @ExceptionHandler(UsernameAlreadyTakenException.class)
+    @ResponseStatus(value = HttpStatus.CONFLICT)
+    public ErrorDto usernameAlreadyTakenExceptionHandler(HttpServletRequest request, UsernameAlreadyTakenException exception) {
+        return new ErrorDto(exception.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
