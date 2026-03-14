@@ -15,9 +15,6 @@
             <section class="auth-card auth-card--compact">
                 <p class="eyebrow">Account Access</p>
                 <h2 class="auth-title">Login</h2>
-                <p class="auth-description">
-                    Use this screen to sign in once the backend auth endpoint is connected.
-                </p>
 
                 <form id="loginForm" class="auth-form" data-auth-form="login" novalidate th:action="@{/login}" method="post">
                     <p th:if="${param.error}">Username or password is incorrect</p>
