@@ -1,19 +1,29 @@
 package com.example.telos.exception;
 
+import com.example.telos.controller.AboutUsController;
+import com.example.telos.controller.HelpUsController;
+import com.example.telos.controller.HomeController;
+import com.example.telos.controller.LoginController;
+import com.example.telos.controller.UserController;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-@ControllerAdvice(annotations = Controller.class)
+@ControllerAdvice(assignableTypes = {
+        AboutUsController.class,
+        HelpUsController.class,
+        HomeController.class,
+        LoginController.class,
+        UserController.class
+})
 public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
