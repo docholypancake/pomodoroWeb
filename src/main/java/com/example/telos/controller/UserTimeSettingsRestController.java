@@ -3,6 +3,7 @@ package com.example.telos.controller;
 import com.example.telos.dto.UserTimeSettingsDto;
 import com.example.telos.dto.UserTimeSettingsResponseDto;
 import com.example.telos.service.UserTimeSettingsService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,7 +16,7 @@ public class UserTimeSettingsRestController {
     private final UserTimeSettingsService userTimeSettingsService;
 
     @PatchMapping
-    public UserTimeSettingsResponseDto updateTimeSettings(Principal principal, @RequestBody UserTimeSettingsDto userTimeSettingsDto) {
+    public UserTimeSettingsResponseDto updateTimeSettings(Principal principal, @Valid @RequestBody UserTimeSettingsDto userTimeSettingsDto) {
         return userTimeSettingsService.updateSettings(principal.getName(), userTimeSettingsDto);
     }
 

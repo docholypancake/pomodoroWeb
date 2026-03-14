@@ -9,6 +9,7 @@ import com.example.telos.model.User;
 import com.example.telos.repository.UserRepository;
 import com.example.telos.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -97,13 +98,18 @@ public class UserServiceImpl implements UserService {
         if (userPasswordDto == null)
             throw new NullEntityReferenceException("Password data cannot be null");
 
+        if (userPasswordDto.getNewPassword() == null ||
+                userPasswordDto.getOldPassword() == null ||
+                userPasswordDto.getConfirmNewPassword() == null)
+            throw new NullEntityReferenceException("Password data cannot be null");
+
         if (!userPasswordDto.getNewPassword().equals(userPasswordDto.getConfirmNewPassword()))
-            return new UserPasswordResponseDto("New passwords do not match");
+            throw new IllegalArgumentException("New password and confirm password don't match");
 
         User user = findByEmailOrUsername(login);
 
         if (!passwordEncoder.matches(userPasswordDto.getOldPassword(), user.getPassword()))
-            return new UserPasswordResponseDto("Current password is incorrect");
+            throw new IllegalArgumentException("Current password is incorrect");
 
         user.setPassword(passwordEncoder.encode(userPasswordDto.getNewPassword()));
         update(user);

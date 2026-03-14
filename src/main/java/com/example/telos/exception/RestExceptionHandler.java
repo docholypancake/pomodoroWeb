@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -15,18 +16,16 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 public class RestExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(RestExceptionHandler.class);
 
-    @ExceptionHandler(NullEntityReferenceException.class)
+    @ExceptionHandler({NullEntityReferenceException.class,IllegalArgumentException.class, MethodArgumentNotValidException.class})
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-    public ErrorDto nullEntityReferenceExceptionHandler(HttpServletRequest request, NullEntityReferenceException exception) {
-        logger.error("Exception raised = {} :: URL = {}", exception.getMessage(), request.getRequestURL());
-        return new ErrorDto("Request data is invalid or missing");
+    public ErrorDto nullEntityReferenceExceptionHandler(HttpServletRequest request, RuntimeException exception) {
+        return new ErrorDto(exception.getMessage());
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
     public ErrorDto entityNotFoundExceptionHandler(HttpServletRequest request, EntityNotFoundException exception) {
-        logger.error("Exception raised = {} :: URL = {}", exception.getMessage(), request.getRequestURL());
-        return new ErrorDto("Requested resource was not found");
+        return new ErrorDto(exception.getMessage());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
