@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NoResourceFoundException.class)
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
-    public ModelAndView entityNotFoundExceptionHandler(HttpServletRequest request) {
+    public ModelAndView noResourceFoundExceptionHandler(HttpServletRequest request) {
         return new ModelAndView("error/404");
     }
 
