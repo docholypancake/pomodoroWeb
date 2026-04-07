@@ -8,7 +8,6 @@
     <link rel="icon" href="assets/icon/icon.ico" type="image/x-icon">
 </head>
 <body>
-    <!-- Header Section --> 
     <header class="header">
         <div class="header-container">
             <div class="logo-container">
@@ -19,13 +18,23 @@
             </div>
             <nav class="nav">
                 <a class="nav-btn" href="index.html">Timer</a>
+                <a class="nav-btn" href="productivity.html">Productivity</a>
                 <a class="nav-btn nav-btn--active" href="about.html">About</a>
-                <a class="nav-btn" href="helpus.html">Help Us</a>
+                <a class="nav-btn nav-btn--accent" href="helpus.html">Help Us</a>
             </nav>
+            <div class="header-side">
+                <a href="index.html" class="mini-timer mini-timer--pomodoro" id="miniTimer" aria-label="Open timer page">
+                    <span class="mini-timer__mode" id="miniTimerMode">Pomodoro</span>
+                    <span class="mini-timer__time" id="miniTimerTime">25:00</span>
+                    <span class="mini-timer__meta">
+                        <span class="mini-timer__dot"></span>
+                        <span class="mini-timer__status" id="miniTimerStatus">Ready</span>
+                    </span>
+                </a>
+            </div>
         </div>
     </header>
 
-    <!-- Main Content -->
     <main class="main-content">
         <div class="container">
             <h2>About This App</h2>
@@ -47,36 +56,41 @@
                 <li>Pick a task you want to focus on.</li>
                 <li>Hit <strong>Start</strong> and stay focused until time is up.</li>
                 <li>Take a short break when the timer ends.</li>
-                <li>After a few sessions, enjoy a longer break.</li>
+                <li>After four Pomodoros, enjoy a longer break.</li>
             </ol>
 
             <h3>Make It Yours</h3>
             <p>
                 Open <strong>Settings</strong> to customize the Pomodoro length, short
                 break, and long break times. You can also turn sound alerts on or off.
-                The session counter helps you track when a longer break is due.
+                The session counter helps you track when the long break is due.
             </p>
 
             <h3>About Me</h3>
-            <img src="assets/pictures/author.jpg" alt="Author"  class="about-photo">
+            <img src="assets/pictures/author.jpg" alt="Author" class="about-photo">
             <p>
-                I'm Oleh, a developer who created this app to help myself and others who have trouble staying focused on tasks. I'm a student at the Lviv Polytechnic National University, and I enjoy building tools that make life easier. This project is open-source, so feel free to check out the code on GitHub and contribute if you wish!
+                I'm Oleh, a developer who created this app to help myself and others who have trouble staying focused on tasks.
+                I'm a student at the Lviv Polytechnic National University, and I enjoy building tools that make life easier.
+                This project is open-source, so feel free to check out the code on GitHub and contribute if you wish!
             </p>
             <p>
-                If you wish to help or thank me, visit the <strong>Help Us</strong> page to see how you can support the development of this app. Your feedback and contributions are always welcome!
+                If you wish to help or thank me, visit the <strong>Help Us</strong> page to see how you can support the development
+                of this app. Your feedback and contributions are always welcome.
             </p>
         </div>
     </main>
 
-    <!-- Footer -->
     <footer class="footer">
         <div class="footer-container">
             <p class="footer-text">
-                &copy; 2026 Pomodoro Web | 
+                &copy; 2026 Pomodoro Web |
                 <a href="https://github.com/docholypancake/pomodoroWeb/issues" class="footer-link">GitHub</a>
             </p>
             <p class="footer-note">Stay focused, stay productive</p>
         </div>
     </footer>
+
+    <script src="js/timer-state.js"></script>
+    <script src="js/mini-timer.js"></script>
 </body>
 </html>

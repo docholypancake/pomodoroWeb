@@ -8,11 +8,20 @@ const pomodoroInput = document.getElementById("pomodoroTime");
 const shortBreakInput = document.getElementById("shortBreakTime");
 const longBreakInput = document.getElementById("longBreakTime");
 const soundEnabledInput = document.getElementById("soundEnabled");
+const settingsError = document.getElementById("settingsError");
 
-const SETTINGS_KEY = "pomodoroSettings";
+const timerStateStore = window.PomodoroTimerState;
 
-function getDefaultSettings() {
-    return {
+const fieldConfig = [
+    { input: pomodoroInput, key: "pomodoro", label: "Pomodoro", min: 1, max: 120 },
+    { input: shortBreakInput, key: "shortBreak", label: "Short break", min: 1, max: 30 },
+    { input: longBreakInput, key: "longBreak", label: "Long break", min: 1, max: 80 }
+];
+
+let savedSettings = loadSettingsFromStorage();
+
+function loadSettingsFromStorage() {
+    return timerStateStore ? timerStateStore.loadSettings() : {
         pomodoro: 25,
         shortBreak: 5,
         longBreak: 15,
@@ -20,41 +29,63 @@ function getDefaultSettings() {
     };
 }
 
-function readSettingsFromInputs() {
-    return {
+function applySettingsToInputs(settings) {
+    pomodoroInput.value = settings.pomodoro;
+    shortBreakInput.value = settings.shortBreak;
+    longBreakInput.value = settings.longBreak;
+    soundEnabledInput.checked = settings.soundEnabled;
+}
+
+function clearValidationState() {
+    fieldConfig.forEach(({ input }) => {
+        input.removeAttribute("aria-invalid");
+        input.classList.remove("settings-input--invalid");
+    });
+
+    if (settingsError) {
+        settingsError.textContent = "";
+        settingsError.classList.add("hidden");
+    }
+}
+
+function showValidationError(message, invalidInputs) {
+    invalidInputs.forEach(input => {
+        input.setAttribute("aria-invalid", "true");
+        input.classList.add("settings-input--invalid");
+    });
+
+    if (settingsError) {
+        settingsError.textContent = message;
+        settingsError.classList.remove("hidden");
+    }
+}
+
+function validateSettingsDraft() {
+    clearValidationState();
+
+    const draft = {
         pomodoro: Number(pomodoroInput.value),
         shortBreak: Number(shortBreakInput.value),
         longBreak: Number(longBreakInput.value),
         soundEnabled: soundEnabledInput.checked
     };
-}
 
-function loadSettings() {
-    const saved = localStorage.getItem(SETTINGS_KEY);
-    const settings = saved ? JSON.parse(saved) : getDefaultSettings();
+    for (const { input, key, label, min, max } of fieldConfig) {
+        const value = draft[key];
+        if (!Number.isInteger(value) || value < min || value > max) {
+            showValidationError(`${label} must be between ${min} and ${max}.`, [input]);
+            input.focus();
+            return null;
+        }
+    }
 
-    pomodoroInput.value = settings.pomodoro;
-    shortBreakInput.value = settings.shortBreak;
-    longBreakInput.value = settings.longBreak;
-    soundEnabledInput.checked = settings.soundEnabled;
-
-    return settings;
-}
-
-function saveSettings() {
-    const settings = readSettingsFromInputs();
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    document.dispatchEvent(new CustomEvent("settings:updated", { detail: settings }));
-    closeSettings();
-}
-
-function applySettingsLive() {
-    const settings = readSettingsFromInputs();
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    document.dispatchEvent(new CustomEvent("settings:updated", { detail: settings }));
+    return timerStateStore.normalizeSettings(draft);
 }
 
 function openSettings() {
+    savedSettings = loadSettingsFromStorage();
+    applySettingsToInputs(savedSettings);
+    clearValidationState();
     timerSection.classList.add("hidden");
     settingsSection.classList.remove("hidden");
 }
@@ -64,19 +95,53 @@ function closeSettings() {
     timerSection.classList.remove("hidden");
 }
 
+function saveSettings() {
+    const validatedSettings = validateSettingsDraft();
+    if (!validatedSettings) return;
+
+    savedSettings = timerStateStore.saveSettings(validatedSettings);
+    document.dispatchEvent(new CustomEvent("settings:updated", { detail: savedSettings }));
+    closeSettings();
+}
+
+function cancelSettings() {
+    applySettingsToInputs(savedSettings);
+    clearValidationState();
+    closeSettings();
+}
+
 settingsToggle?.addEventListener("click", () => {
     if (settingsToggle.disabled) return;
-    settingsSection.classList.contains("hidden") ? openSettings() : closeSettings();
+    settingsSection.classList.contains("hidden") ? openSettings() : cancelSettings();
 });
 
 saveSettingsBtn?.addEventListener("click", saveSettings);
-cancelSettingsBtn?.addEventListener("click", closeSettings);
+cancelSettingsBtn?.addEventListener("click", cancelSettings);
 
-// Live updates when inputs change
-[pomodoroInput, shortBreakInput, longBreakInput].forEach(input => {
-    input.addEventListener("input", applySettingsLive);
+fieldConfig.forEach(({ input }) => {
+    input.addEventListener("input", () => {
+        input.removeAttribute("aria-invalid");
+        input.classList.remove("settings-input--invalid");
+
+        if (settingsError) {
+            settingsError.textContent = "";
+            settingsError.classList.add("hidden");
+        }
+    });
 });
-soundEnabledInput.addEventListener("change", applySettingsLive);
 
-const settings = loadSettings();
-document.dispatchEvent(new CustomEvent("settings:loaded", { detail: settings }));
+window.addEventListener("storage", (event) => {
+    if (!timerStateStore || event.key !== timerStateStore.keys.SETTINGS_KEY) return;
+
+    savedSettings = loadSettingsFromStorage();
+    if (!settingsSection.classList.contains("hidden")) {
+        applySettingsToInputs(savedSettings);
+        clearValidationState();
+    }
+});
+
+if (timerStateStore) {
+    savedSettings = loadSettingsFromStorage();
+    applySettingsToInputs(savedSettings);
+    document.dispatchEvent(new CustomEvent("settings:loaded", { detail: savedSettings }));
+}
