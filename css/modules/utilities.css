@@ -1,0 +1,58 @@
+/* ===== ANIMATIONS ===== */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+.btn-text {
+    display: inline-block;
+}
+
+/* ===== UTILITY CLASSES ===== */
+.hidden {
+    display: none !important;
+}
+
+.fade-in {
+    animation: fadeIn var(--transition-normal) ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.about-photo {
+    float: right;
+    width: 200px;
+    height: auto;
+    margin: 0 0 var(--spacing-md) var(--spacing-md);
+    border-radius: var(--radius-lg);
+}
+
+.qr-code-container {
+    display: flex;
+    justify-content: center;
+    margin: var(--spacing-md) 0;
+}
+
+.qr-code {
+    width: min(100%, 400px);
+    height: auto;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+}
+
+#sessionCount,
+#sessionTotal {
+    color: var(--color-primary-light);
+    font-weight: 700;
+}

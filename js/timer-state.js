@@ -1,0 +1,347 @@
+(function (globalScope) {
+    const SETTINGS_KEY = "pomodoroSettings";
+    const TIMER_STATE_KEY = "pomodoroTimerState";
+    const POMODOROS_PER_CYCLE = 4;
+    const VALID_MODES = ["pomodoro", "short-break", "long-break"];
+
+    const DEFAULT_SETTINGS = {
+        pomodoro: 25,
+        shortBreak: 5,
+        longBreak: 15,
+        soundEnabled: true
+    };
+    const SETTINGS_LIMITS = {
+        pomodoro: 120,
+        shortBreak: 30,
+        longBreak: 80
+    };
+
+    function toPositiveInteger(value, fallback, min = 1, max = Number.POSITIVE_INFINITY) {
+        const parsed = Number.parseInt(value, 10);
+        if (!Number.isFinite(parsed) || parsed < min) {
+            return fallback;
+        }
+
+        return Math.min(parsed, max);
+    }
+
+    function normalizeSettings(settings = {}) {
+        return {
+            pomodoro: toPositiveInteger(settings.pomodoro, DEFAULT_SETTINGS.pomodoro, 1, SETTINGS_LIMITS.pomodoro),
+            shortBreak: toPositiveInteger(settings.shortBreak, DEFAULT_SETTINGS.shortBreak, 1, SETTINGS_LIMITS.shortBreak),
+            longBreak: toPositiveInteger(settings.longBreak, DEFAULT_SETTINGS.longBreak, 1, SETTINGS_LIMITS.longBreak),
+            soundEnabled: settings.soundEnabled !== false
+        };
+    }
+
+    function getSettingsKey(mode) {
+        if (mode === "pomodoro") return "pomodoro";
+        if (mode === "short-break") return "shortBreak";
+        if (mode === "long-break") return "longBreak";
+        return "pomodoro";
+    }
+
+    function getModeDurationSeconds(settings, mode) {
+        const safeSettings = normalizeSettings(settings);
+        return safeSettings[getSettingsKey(mode)] * 60;
+    }
+
+    function getDefaultTimerState(settings) {
+        const safeSettings = normalizeSettings(settings);
+
+        return {
+            currentMode: "pomodoro",
+            isRunning: false,
+            endTime: null,
+            remainingSeconds: getModeDurationSeconds(safeSettings, "pomodoro"),
+            completedPomodorosInCycle: 0
+        };
+    }
+
+    function normalizeTimerState(state = {}, settings) {
+        const safeSettings = normalizeSettings(settings);
+        const fallback = getDefaultTimerState(safeSettings);
+        const currentMode = VALID_MODES.includes(state.currentMode) ? state.currentMode : fallback.currentMode;
+        const remainingFallback = getModeDurationSeconds(safeSettings, currentMode);
+        const rawRemainingSeconds = Number.parseInt(state.remainingSeconds, 10);
+        const remainingSeconds = Number.isFinite(rawRemainingSeconds) && rawRemainingSeconds >= 0
+            ? rawRemainingSeconds
+            : remainingFallback;
+        const completedPomodorosInCycle = Math.min(
+            toPositiveInteger(state.completedPomodorosInCycle, 0, 0, POMODOROS_PER_CYCLE),
+            POMODOROS_PER_CYCLE
+        );
+        const isRunning = Boolean(state.isRunning);
+        const rawEndTime = Number(state.endTime);
+        const endTime = isRunning && Number.isFinite(rawEndTime) ? rawEndTime : null;
+
+        return {
+            currentMode,
+            isRunning,
+            endTime,
+            remainingSeconds,
+            completedPomodorosInCycle
+        };
+    }
+
+    function cloneState(state) {
+        return {
+            currentMode: state.currentMode,
+            isRunning: state.isRunning,
+            endTime: state.endTime,
+            remainingSeconds: state.remainingSeconds,
+            completedPomodorosInCycle: state.completedPomodorosInCycle
+        };
+    }
+
+    function loadSettings() {
+        const saved = localStorage.getItem(SETTINGS_KEY);
+        if (!saved) {
+            return normalizeSettings();
+        }
+
+        try {
+            return normalizeSettings(JSON.parse(saved));
+        } catch (error) {
+            console.warn("Failed to parse saved settings.", error);
+            return normalizeSettings();
+        }
+    }
+
+    function saveSettings(settings) {
+        const normalized = normalizeSettings(settings);
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(normalized));
+        return normalized;
+    }
+
+    function getRemainingSeconds(state, now = Date.now()) {
+        if (!state.isRunning || !state.endTime) {
+            return Math.max(0, state.remainingSeconds);
+        }
+
+        return Math.max(0, Math.ceil((state.endTime - now) / 1000));
+    }
+
+    function transitionAfterCompletion(state, settings, completedAt) {
+        if (state.currentMode === "pomodoro") {
+            const completedPomodorosInCycle = Math.min(
+                state.completedPomodorosInCycle + 1,
+                POMODOROS_PER_CYCLE
+            );
+            const nextMode = completedPomodorosInCycle >= POMODOROS_PER_CYCLE
+                ? "long-break"
+                : "short-break";
+            const remainingSeconds = getModeDurationSeconds(settings, nextMode);
+
+            return {
+                currentMode: nextMode,
+                isRunning: true,
+                endTime: completedAt + (remainingSeconds * 1000),
+                remainingSeconds,
+                completedPomodorosInCycle
+            };
+        }
+
+        if (state.currentMode === "short-break") {
+            const remainingSeconds = getModeDurationSeconds(settings, "pomodoro");
+
+            return {
+                currentMode: "pomodoro",
+                isRunning: true,
+                endTime: completedAt + (remainingSeconds * 1000),
+                remainingSeconds,
+                completedPomodorosInCycle: state.completedPomodorosInCycle
+            };
+        }
+
+        if (state.currentMode === "long-break") {
+            return getDefaultTimerState(settings);
+        }
+
+        return getDefaultTimerState(settings);
+    }
+
+    function hydrateTimerState(state, settings, now = Date.now()) {
+        const safeSettings = normalizeSettings(settings);
+        let nextState = normalizeTimerState(state, safeSettings);
+
+        if (!nextState.isRunning) {
+            nextState.remainingSeconds = Math.max(0, nextState.remainingSeconds);
+            nextState.endTime = null;
+            return nextState;
+        }
+
+        let guard = 0;
+        while (nextState.isRunning && nextState.endTime && nextState.endTime <= now && guard < 100) {
+            nextState = transitionAfterCompletion(nextState, safeSettings, nextState.endTime);
+            guard += 1;
+        }
+
+        nextState.remainingSeconds = getRemainingSeconds(nextState, now);
+        return nextState;
+    }
+
+    function loadTimerState(settings) {
+        const safeSettings = normalizeSettings(settings);
+        const saved = localStorage.getItem(TIMER_STATE_KEY);
+
+        if (!saved) {
+            return getDefaultTimerState(safeSettings);
+        }
+
+        try {
+            return hydrateTimerState(JSON.parse(saved), safeSettings, Date.now());
+        } catch (error) {
+            console.warn("Failed to parse saved timer state.", error);
+            return getDefaultTimerState(safeSettings);
+        }
+    }
+
+    function saveTimerState(state, settings) {
+        const normalized = normalizeTimerState(state, settings || loadSettings());
+        localStorage.setItem(TIMER_STATE_KEY, JSON.stringify(normalized));
+        return normalized;
+    }
+
+    function startTimerState(state, settings, now = Date.now()) {
+        const safeSettings = normalizeSettings(settings);
+        const syncedState = hydrateTimerState(state, safeSettings, now);
+
+        if (syncedState.isRunning) {
+            return syncedState;
+        }
+
+        const remainingSeconds = syncedState.remainingSeconds > 0
+            ? syncedState.remainingSeconds
+            : getModeDurationSeconds(safeSettings, syncedState.currentMode);
+
+        return {
+            ...cloneState(syncedState),
+            isRunning: true,
+            endTime: now + (remainingSeconds * 1000),
+            remainingSeconds
+        };
+    }
+
+    function pauseTimerState(state, settings, now = Date.now()) {
+        const safeSettings = normalizeSettings(settings);
+        const syncedState = hydrateTimerState(state, safeSettings, now);
+
+        if (!syncedState.isRunning) {
+            return {
+                ...cloneState(syncedState),
+                endTime: null
+            };
+        }
+
+        return {
+            ...cloneState(syncedState),
+            isRunning: false,
+            endTime: null,
+            remainingSeconds: getRemainingSeconds(syncedState, now)
+        };
+    }
+
+    function resetTimerState(state, settings) {
+        const safeSettings = settings ? normalizeSettings(settings) : loadSettings();
+        return getDefaultTimerState(safeSettings);
+    }
+
+    function applySettingsToTimerState(state, settings) {
+        const safeSettings = normalizeSettings(settings);
+        const syncedState = hydrateTimerState(state, safeSettings, Date.now());
+
+        if (syncedState.isRunning) {
+            return syncedState;
+        }
+
+        return {
+            ...cloneState(syncedState),
+            remainingSeconds: getModeDurationSeconds(safeSettings, syncedState.currentMode),
+            endTime: null
+        };
+    }
+
+    function getCurrentPomodoroNumber(state) {
+        const completedPomodorosInCycle = Math.min(
+            toPositiveInteger(state.completedPomodorosInCycle, 0, 0, POMODOROS_PER_CYCLE),
+            POMODOROS_PER_CYCLE
+        );
+
+        if (state.currentMode === "pomodoro") {
+            return Math.min(completedPomodorosInCycle + 1, POMODOROS_PER_CYCLE);
+        }
+
+        return Math.max(1, completedPomodorosInCycle);
+    }
+
+    function getProjectedCycleEndTime(state, settings, now = Date.now()) {
+        const safeSettings = normalizeSettings(settings);
+        let simulatedState = hydrateTimerState(state, safeSettings, now);
+
+        if (!simulatedState.isRunning) {
+            simulatedState = startTimerState(simulatedState, safeSettings, now);
+        }
+
+        let guard = 0;
+        while (guard < 100) {
+            if (!simulatedState.isRunning || !simulatedState.endTime) {
+                return null;
+            }
+
+            const segmentEndTime = simulatedState.endTime;
+            const nextState = transitionAfterCompletion(simulatedState, safeSettings, segmentEndTime);
+            if (!nextState.isRunning) {
+                return segmentEndTime;
+            }
+
+            simulatedState = nextState;
+            guard += 1;
+        }
+
+        return null;
+    }
+
+    function areStatesEqual(firstState, secondState) {
+        return firstState.currentMode === secondState.currentMode
+            && firstState.isRunning === secondState.isRunning
+            && firstState.endTime === secondState.endTime
+            && firstState.remainingSeconds === secondState.remainingSeconds
+            && firstState.completedPomodorosInCycle === secondState.completedPomodorosInCycle;
+    }
+
+    const api = {
+        keys: {
+            SETTINGS_KEY,
+            TIMER_STATE_KEY
+        },
+        normalizeSettings,
+        getDefaultSettings: () => normalizeSettings(),
+        getSettingsKey,
+        getModeDurationSeconds,
+        getDefaultTimerState,
+        normalizeTimerState,
+        loadSettings,
+        saveSettings,
+        loadTimerState,
+        saveTimerState,
+        hydrateTimerState,
+        startTimerState,
+        pauseTimerState,
+        resetTimerState,
+        applySettingsToTimerState,
+        getRemainingSeconds,
+        getCurrentPomodoroNumber,
+        getProjectedCycleEndTime,
+        getPomodorosPerCycle: () => POMODOROS_PER_CYCLE,
+        areStatesEqual
+    };
+
+    if (globalScope) {
+        globalScope.PomodoroTimerState = api;
+    }
+
+    if (typeof module !== "undefined" && module.exports) {
+        module.exports = api;
+    }
+})(typeof window !== "undefined" ? window : globalThis);
