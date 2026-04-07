@@ -100,8 +100,8 @@ function validateSettingsDraft() {
         soundEnabled: soundEnabledInput.checked
     };
 
-    for (const { input, key, label, min, max } of fieldConfig) {
-        const normalizedField = normalizeMinuteInputValue(input, { key, label, min, max, defaultValue: fieldConfig.find(field => field.key === key).defaultValue });
+    for (const { input, key, label, min, max, defaultValue } of fieldConfig) {
+        const normalizedField = normalizeMinuteInputValue(input, { key, label, min, max, defaultValue });
         const value = normalizedField.value;
 
         if (!normalizedField.isValid || !Number.isInteger(value) || value < min || value > max) {
