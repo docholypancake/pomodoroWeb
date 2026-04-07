@@ -16,6 +16,40 @@
 - Updating settings while the timer is idle updates the restored countdown length for the current mode.
 - The settings button is disabled while the timer is running.
 
+### Timer Settings Positive Cases
+- Open Settings, enter `30` for Pomodoro, `6` for Short Break, `20` for Long Break, keep sound enabled, click `Save & Close`.
+  Expected result: settings panel closes, timer updates to `30:00`, no validation error is shown, and the same values remain after reload.
+- Open Settings, save boundary minimum values `1` for Pomodoro, `1` for Short Break, and `1` for Long Break.
+  Expected result: values save successfully, timer reflects the selected duration for the current mode, and no error is shown.
+- Open Settings, save boundary maximum values `120` for Pomodoro, `30` for Short Break, and `80` for Long Break.
+  Expected result: values save successfully and persist after reload.
+- Open Settings, disable `Sound Notifications`, click `Save & Close`, then reload and reopen Settings.
+  Expected result: the checkbox remains unchecked after reload.
+- With the timer idle on Pomodoro, save a new Pomodoro duration.
+  Expected result: the main timer display immediately reflects the new Pomodoro duration.
+- With the timer idle on Short Break or Long Break, save a new break duration for the current mode.
+  Expected result: the timer display updates to the new break length for that mode.
+- Open Settings, change values, then click `Cancel`.
+  Expected result: unsaved changes are discarded and reopening Settings shows the previously saved values.
+
+### Timer Settings Negative Cases
+- Enter `0` in Pomodoro and click `Save & Close`.
+  Expected result: save is blocked, `Pomodoro must be between 1 and 120.` is shown, and stored settings remain unchanged.
+- Enter `121` in Pomodoro and click `Save & Close`.
+  Expected result: save is blocked with the same inline validation behavior.
+- Enter `0` or `31` in Short Break and click `Save & Close`.
+  Expected result: save is blocked and `Short break must be between 1 and 30.` is shown.
+- Enter `0` or `81` in Long Break and click `Save & Close`.
+  Expected result: save is blocked and `Long break must be between 1 and 80.` is shown.
+- Clear a numeric field so it becomes blank, then click `Save & Close`.
+  Expected result: save is blocked, the field is marked invalid, and previously saved values are preserved.
+- Enter a non-integer such as `2.5` or non-numeric text through browser devtools/manual DOM edit, then click `Save & Close`.
+  Expected result: save is blocked because only integer values in range are accepted.
+- Start the timer and attempt to open Settings.
+  Expected result: the Settings button stays disabled and the settings panel does not open while the timer is running.
+- Corrupt `pomodoroSettings` in localStorage manually, then reload and open Settings.
+  Expected result: the app falls back to safe default settings instead of crashing.
+
 ## Mini Timer
 - `about.html`, `helpus.html`, and `productivity.html` show the mini timer in the header.
 - The mini timer reflects mode, remaining time, and running/paused/ready status from the shared timer state.
