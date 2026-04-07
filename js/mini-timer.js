@@ -95,11 +95,19 @@ document.addEventListener("DOMContentLoaded", () => {
         return stateChanged;
     }
 
-    function syncState(now = Date.now(), shouldPlaySounds = true) {
-        const nextState = timerStateStore.hydrateTimerState(timerState, settings, now);
-        const stateChanged = applyIncomingState(nextState, settings, shouldPlaySounds);
+    function hasPersistedStateChanged(previousState, nextState) {
+        return previousState.currentMode !== nextState.currentMode
+            || previousState.isRunning !== nextState.isRunning
+            || previousState.endTime !== nextState.endTime
+            || previousState.completedPomodorosInCycle !== nextState.completedPomodorosInCycle;
+    }
 
-        if (stateChanged) {
+    function syncState(now = Date.now(), shouldPlaySounds = true) {
+        const previousState = timerState;
+        const nextState = timerStateStore.hydrateTimerState(timerState, settings, now);
+        applyIncomingState(nextState, settings, shouldPlaySounds);
+
+        if (hasPersistedStateChanged(previousState, nextState)) {
             timerState = timerStateStore.saveTimerState(timerState, settings);
         }
     }
