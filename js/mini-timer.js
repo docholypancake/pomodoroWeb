@@ -23,6 +23,12 @@ document.addEventListener("DOMContentLoaded", () => {
     let settings = timerStateStore.loadSettings();
     let timerState = timerStateStore.loadTimerState(settings);
 
+    function playSound(fileName) {
+        if (!settings.soundEnabled) return;
+        const audio = new Audio(`assets/sounds/${fileName}`);
+        audio.play().catch(() => {});
+    }
+
     function formatTime(totalSeconds) {
         const safeSeconds = Math.max(0, totalSeconds);
         const minutes = Math.floor(safeSeconds / 60);
@@ -71,11 +77,20 @@ document.addEventListener("DOMContentLoaded", () => {
         setTicking(timerState.isRunning);
     }
 
-    function syncState(now = Date.now()) {
+    function syncState(now = Date.now(), shouldPlaySounds = true) {
+        const previousState = timerState;
         const nextState = timerStateStore.hydrateTimerState(timerState, settings, now);
-        const stateChanged = !timerStateStore.areStatesEqual(timerState, nextState);
+        const stateChanged = !timerStateStore.areStatesEqual(previousState, nextState);
 
         timerState = nextState;
+
+        if (stateChanged && shouldPlaySounds) {
+            if (previousState.currentMode === "pomodoro" && nextState.currentMode !== "pomodoro") {
+                playSound("timer_sound_down.wav");
+            } else if (previousState.currentMode !== "pomodoro" && nextState.currentMode === "pomodoro") {
+                playSound("timer_sound_up.wav");
+            }
+        }
 
         if (stateChanged) {
             timerState = timerStateStore.saveTimerState(timerState, settings);
@@ -109,5 +124,5 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     render();
-    syncState(Date.now());
+    syncState(Date.now(), false);
 });

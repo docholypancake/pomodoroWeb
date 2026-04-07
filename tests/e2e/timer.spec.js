@@ -167,6 +167,42 @@ test.describe("timer persistence", () => {
         await expect(page.locator("#miniTimerTime")).not.toHaveText("25:00");
     });
 
+    test("plays transition sounds on mini timer pages while active", async ({ page }) => {
+        const now = Date.now();
+        await page.addInitScript(() => {
+            window.__playedSounds = [];
+            const originalPlay = HTMLMediaElement.prototype.play;
+            HTMLMediaElement.prototype.play = function () {
+                window.__playedSounds.push(this.currentSrc || this.src);
+                return Promise.resolve();
+            };
+            window.__restorePlay = () => {
+                HTMLMediaElement.prototype.play = originalPlay;
+            };
+        });
+
+        await seedTimerStorage(page,
+            { pomodoro: 1, shortBreak: 1, longBreak: 1, soundEnabled: true },
+            {
+                currentMode: "pomodoro",
+                isRunning: true,
+                endTime: now + 1000,
+                remainingSeconds: 1,
+                completedPomodorosInCycle: 0
+            }
+        );
+
+        await page.goto("/about.html");
+        await expect(page.locator("#miniTimerMode")).toHaveText("Pomodoro");
+        await expect(page.locator("#miniTimerStatus")).toHaveText("Running");
+
+        await expect.poll(async () => page.evaluate(() => window.__playedSounds.length)).toBeGreaterThan(0);
+        await expect(page.locator("#miniTimerMode")).toHaveText("Short Break");
+
+        const playedSounds = await page.evaluate(() => window.__playedSounds);
+        expect(playedSounds.some(src => src.includes("timer_sound_down.wav"))).toBe(true);
+    });
+
     test("syncs mini timer state across pages through storage events", async ({ browser }) => {
         const context = await browser.newContext();
         const timerPage = await context.newPage();
