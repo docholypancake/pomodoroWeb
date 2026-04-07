@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     let timerWorker = null;
+    let lastWorkerRunningState = null;
     try {
         timerWorker = new Worker("js/worker.js");
     } catch (error) {
@@ -50,6 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setWorkerState(shouldRun) {
+        if (shouldRun === lastWorkerRunningState) return;
+        lastWorkerRunningState = shouldRun;
+
         if (timerWorker) {
             timerWorker.postMessage(shouldRun ? "start" : "stop");
             return;
@@ -136,6 +140,13 @@ document.addEventListener("DOMContentLoaded", () => {
         setWorkerState(timerState.isRunning);
     }
 
+    function hasPersistedStateChanged(previousState, nextState) {
+        return previousState.currentMode !== nextState.currentMode
+            || previousState.isRunning !== nextState.isRunning
+            || previousState.endTime !== nextState.endTime
+            || previousState.completedPomodorosInCycle !== nextState.completedPomodorosInCycle;
+    }
+
     function syncTimerState(now = Date.now(), shouldPlaySounds = true) {
         const previousState = timerState;
         const nextState = timerStateStore.hydrateTimerState(timerState, settings, now);
@@ -151,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        if (stateChanged) {
+        if (hasPersistedStateChanged(previousState, nextState)) {
             persistTimerState();
         }
 
