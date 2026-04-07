@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     const timerStateStore = window.PomodoroTimerState;
+    const soundManager = window.PomodoroSoundManager;
     const miniTimer = document.getElementById("miniTimer");
     const miniTimerMode = document.getElementById("miniTimerMode");
     const miniTimerTime = document.getElementById("miniTimerTime");
@@ -24,9 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let timerState = timerStateStore.loadTimerState(settings);
 
     function playSound(fileName) {
-        if (!settings.soundEnabled) return;
-        const audio = new Audio(`assets/sounds/${fileName}`);
-        audio.play().catch(() => {});
+        soundManager?.play(fileName, settings.soundEnabled);
     }
 
     function formatTime(totalSeconds) {
@@ -77,12 +76,12 @@ document.addEventListener("DOMContentLoaded", () => {
         setTicking(timerState.isRunning);
     }
 
-    function syncState(now = Date.now(), shouldPlaySounds = true) {
+    function applyIncomingState(nextState, nextSettings = settings, shouldPlaySounds = true) {
         const previousState = timerState;
-        const nextState = timerStateStore.hydrateTimerState(timerState, settings, now);
-        const stateChanged = !timerStateStore.areStatesEqual(previousState, nextState);
-
+        settings = nextSettings;
         timerState = nextState;
+
+        const stateChanged = !timerStateStore.areStatesEqual(previousState, nextState);
 
         if (stateChanged && shouldPlaySounds) {
             if (previousState.currentMode === "pomodoro" && nextState.currentMode !== "pomodoro") {
@@ -92,34 +91,39 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
+        render();
+        return stateChanged;
+    }
+
+    function syncState(now = Date.now(), shouldPlaySounds = true) {
+        const nextState = timerStateStore.hydrateTimerState(timerState, settings, now);
+        const stateChanged = applyIncomingState(nextState, settings, shouldPlaySounds);
+
         if (stateChanged) {
             timerState = timerStateStore.saveTimerState(timerState, settings);
         }
-
-        render();
     }
 
     document.addEventListener("settings:updated", (event) => {
         settings = event.detail;
-        timerState = timerStateStore.applySettingsToTimerState(timerState, settings);
+        const nextState = timerStateStore.applySettingsToTimerState(timerState, settings);
+        applyIncomingState(nextState, settings, false);
         timerState = timerStateStore.saveTimerState(timerState, settings);
-        render();
     });
 
     document.addEventListener("timer:state-updated", (event) => {
-        settings = event.detail.settings;
-        timerState = event.detail.state;
-        render();
+        applyIncomingState(event.detail.state, event.detail.settings, true);
     });
 
     window.addEventListener("storage", (event) => {
+        let nextSettings = settings;
         if (event.key === timerStateStore.keys.SETTINGS_KEY) {
-            settings = timerStateStore.loadSettings();
+            nextSettings = timerStateStore.loadSettings();
         }
 
         if (event.key === timerStateStore.keys.TIMER_STATE_KEY || event.key === timerStateStore.keys.SETTINGS_KEY) {
-            timerState = timerStateStore.loadTimerState(settings);
-            render();
+            const nextState = timerStateStore.loadTimerState(nextSettings);
+            applyIncomingState(nextState, nextSettings, true);
         }
     });
 

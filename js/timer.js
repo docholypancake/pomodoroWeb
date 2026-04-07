@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     const timerStateStore = window.PomodoroTimerState;
+    const soundManager = window.PomodoroSoundManager;
     const timeDisplay = document.getElementById("timeDisplay");
     const startBtn = document.getElementById("startBtn");
     const resetBtn = document.getElementById("resetBtn");
@@ -45,9 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function playSound(fileName) {
-        if (!settings.soundEnabled) return;
-        const audio = new Audio(`assets/sounds/${fileName}`);
-        audio.play().catch(() => {});
+        soundManager?.play(fileName, settings.soundEnabled);
     }
 
     function setWorkerState(shouldRun) {
