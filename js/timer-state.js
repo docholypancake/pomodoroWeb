@@ -1,4 +1,4 @@
-(function () {
+(function (globalScope) {
     const SETTINGS_KEY = "pomodoroSettings";
     const TIMER_STATE_KEY = "pomodoroTimerState";
     const POMODOROS_PER_CYCLE = 4;
@@ -305,7 +305,7 @@
             && firstState.completedPomodorosInCycle === secondState.completedPomodorosInCycle;
     }
 
-    window.PomodoroTimerState = {
+    const api = {
         keys: {
             SETTINGS_KEY,
             TIMER_STATE_KEY
@@ -331,4 +331,12 @@
         getPomodorosPerCycle: () => POMODOROS_PER_CYCLE,
         areStatesEqual
     };
-})();
+
+    if (globalScope) {
+        globalScope.PomodoroTimerState = api;
+    }
+
+    if (typeof module !== "undefined" && module.exports) {
+        module.exports = api;
+    }
+})(typeof window !== "undefined" ? window : globalThis);

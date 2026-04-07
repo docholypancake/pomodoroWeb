@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const STORAGE_KEY = "pomodoroProductivity.v1";
     const DEFAULT_TAB = "todo";
     const ITEM_TYPES = ["todo", "notes"];
+    const productivityStoreApi = window.PomodoroProductivityStore;
     const itemLabels = {
         todo: "task",
         notes: "note"
@@ -38,91 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!tabButtons.length || !panels.length) return;
 
-    const storageAdapter = {
-        load() {
-            try {
-                const storedValue = window.localStorage.getItem(STORAGE_KEY);
-                if (!storedValue) {
-                    return this.emptyState();
-                }
+    if (!productivityStoreApi) return;
 
-                return this.normalize(JSON.parse(storedValue));
-            } catch (error) {
-                return this.emptyState();
-            }
-        },
-        save(nextState) {
-            const normalizedState = this.normalize(nextState);
-            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedState));
-            return normalizedState;
-        },
-        create(type, payload) {
-            const state = this.load();
-            const now = new Date().toISOString();
-            const nextItem = {
-                id: createId(),
-                createdAt: now,
-                updatedAt: now,
-                ...payload
-            };
-
-            state[type] = [nextItem, ...state[type]];
-            return this.save(state)[type];
-        },
-        update(type, itemId, changes) {
-            const state = this.load();
-            state[type] = state[type].map(item => {
-                if (item.id !== itemId) return item;
-
-                return {
-                    ...item,
-                    ...changes,
-                    updatedAt: new Date().toISOString()
-                };
-            });
-
-            return this.save(state)[type];
-        },
-        delete(type, itemId) {
-            const state = this.load();
-            state[type] = state[type].filter(item => item.id !== itemId);
-            return this.save(state)[type];
-        },
-        emptyState() {
-            return {
-                todo: [],
-                notes: []
-            };
-        },
-        normalize(rawState) {
-            const safeState = this.emptyState();
-
-            safeState.todo = Array.isArray(rawState?.todo)
-                ? rawState.todo
-                    .filter(item => item && typeof item.id === "string" && typeof item.text === "string")
-                    .map(item => ({
-                        id: item.id,
-                        text: item.text,
-                        completed: Boolean(item.completed),
-                        createdAt: isValidTimestamp(item.createdAt) ? item.createdAt : new Date().toISOString(),
-                        updatedAt: isValidTimestamp(item.updatedAt) ? item.updatedAt : new Date().toISOString()
-                    }))
-                : [];
-
-            safeState.notes = Array.isArray(rawState?.notes)
-                ? rawState.notes
-                    .filter(item => item && typeof item.id === "string" && typeof item.content === "string")
-                    .map(item => ({
-                        id: item.id,
-                        content: item.content,
-                        createdAt: isValidTimestamp(item.createdAt) ? item.createdAt : new Date().toISOString(),
-                        updatedAt: isValidTimestamp(item.updatedAt) ? item.updatedAt : new Date().toISOString()
-                    }))
-                : [];
-
-            return safeState;
-        }
-    };
+    const storageAdapter = productivityStoreApi.createProductivityStore(window.localStorage);
 
     const state = {
         activeTab: DEFAULT_TAB,
@@ -132,19 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
             notes: null
         }
     };
-
-    function createId() {
-        if (window.crypto?.randomUUID) {
-            return window.crypto.randomUUID();
-        }
-
-        return `item-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    }
-
-    function isValidTimestamp(value) {
-        if (typeof value !== "string") return false;
-        return !Number.isNaN(new Date(value).getTime());
-    }
 
     function escapeHtml(value) {
         return String(value)
@@ -496,7 +401,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     window.addEventListener("storage", event => {
-        if (event.key !== STORAGE_KEY) return;
+        if (event.key !== storageAdapter.key) return;
         syncStateFromStorage();
         renderType("todo");
         renderType("notes");
