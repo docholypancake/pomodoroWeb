@@ -13,7 +13,7 @@ describe("timer-state", () => {
     it("normalizes settings to safe defaults and bounds", () => {
         expect(timerState.normalizeSettings({
             pomodoro: 999,
-            shortBreak: 0,
+            shortBreak: "5.9",
             longBreak: "abc",
             soundEnabled: false
         })).toEqual({

@@ -135,35 +135,57 @@ test.describe("timer settings automation", () => {
 
         await page.fill("#pomodoroTime", "0");
         await page.click("#saveSettings");
-        await expect(page.locator("#settingsError")).toContainText("Pomodoro must be between 1 and 120.");
+        await expect(page.locator("#settingsError")).toBeHidden();
+        await expect(page.locator("#settingsSection")).toHaveClass(/hidden/);
+        await page.click("#settingsToggle");
+        await expect(page.locator("#pomodoroTime")).toHaveValue("25");
 
         await page.fill("#pomodoroTime", "121");
         await page.click("#saveSettings");
         await expect(page.locator("#settingsError")).toContainText("Pomodoro must be between 1 and 120.");
     });
 
-    test("rejects short break values below and above range", async ({ page }) => {
+    test("defaults short break values below range and rejects values above range", async ({ page }) => {
         await openSettings(page);
 
         await page.fill("#shortBreakTime", "0");
         await page.click("#saveSettings");
-        await expect(page.locator("#settingsError")).toContainText("Short break must be between 1 and 30.");
+        await expect(page.locator("#settingsError")).toBeHidden();
+        await expect(page.locator("#settingsSection")).toHaveClass(/hidden/);
+        await page.click("#settingsToggle");
+        await expect(page.locator("#shortBreakTime")).toHaveValue("5");
 
         await page.fill("#shortBreakTime", "31");
         await page.click("#saveSettings");
         await expect(page.locator("#settingsError")).toContainText("Short break must be between 1 and 30.");
     });
 
-    test("rejects long break values below and above range", async ({ page }) => {
+    test("defaults long break values below range and rejects values above range", async ({ page }) => {
         await openSettings(page);
 
         await page.fill("#longBreakTime", "0");
         await page.click("#saveSettings");
-        await expect(page.locator("#settingsError")).toContainText("Long break must be between 1 and 80.");
+        await expect(page.locator("#settingsError")).toBeHidden();
+        await expect(page.locator("#settingsSection")).toHaveClass(/hidden/);
+        await page.click("#settingsToggle");
+        await expect(page.locator("#longBreakTime")).toHaveValue("15");
 
         await page.fill("#longBreakTime", "81");
         await page.click("#saveSettings");
         await expect(page.locator("#settingsError")).toContainText("Long break must be between 1 and 80.");
+    });
+
+    test("rejects non-integer values", async ({ page }) => {
+        await openSettings(page);
+
+        await page.fill("#pomodoroTime", "2.5");
+        await page.click("#saveSettings");
+        await expect(page.locator("#settingsError")).toBeHidden();
+        await expect(page.locator("#settingsSection")).toHaveClass(/hidden/);
+        await expect(page.locator("#timeDisplay")).toHaveText("02:00");
+
+        await page.click("#settingsToggle");
+        await expect(page.locator("#pomodoroTime")).toHaveValue("2");
     });
 
     test("prevents opening settings while the timer is running", async ({ page }) => {

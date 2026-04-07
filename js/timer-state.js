@@ -10,6 +10,11 @@
         longBreak: 15,
         soundEnabled: true
     };
+    const SETTINGS_LIMITS = {
+        pomodoro: 120,
+        shortBreak: 30,
+        longBreak: 80
+    };
 
     function toPositiveInteger(value, fallback, min = 1, max = Number.POSITIVE_INFINITY) {
         const parsed = Number.parseInt(value, 10);
@@ -22,9 +27,9 @@
 
     function normalizeSettings(settings = {}) {
         return {
-            pomodoro: toPositiveInteger(settings.pomodoro, DEFAULT_SETTINGS.pomodoro, 1, 120),
-            shortBreak: toPositiveInteger(settings.shortBreak, DEFAULT_SETTINGS.shortBreak, 1, 30),
-            longBreak: toPositiveInteger(settings.longBreak, DEFAULT_SETTINGS.longBreak, 1, 80),
+            pomodoro: toPositiveInteger(settings.pomodoro, DEFAULT_SETTINGS.pomodoro, 1, SETTINGS_LIMITS.pomodoro),
+            shortBreak: toPositiveInteger(settings.shortBreak, DEFAULT_SETTINGS.shortBreak, 1, SETTINGS_LIMITS.shortBreak),
+            longBreak: toPositiveInteger(settings.longBreak, DEFAULT_SETTINGS.longBreak, 1, SETTINGS_LIMITS.longBreak),
             soundEnabled: settings.soundEnabled !== false
         };
     }

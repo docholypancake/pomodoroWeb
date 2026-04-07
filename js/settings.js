@@ -11,11 +11,17 @@ const soundEnabledInput = document.getElementById("soundEnabled");
 const settingsError = document.getElementById("settingsError");
 
 const timerStateStore = window.PomodoroTimerState;
+const defaultSettings = timerStateStore ? timerStateStore.getDefaultSettings() : {
+    pomodoro: 25,
+    shortBreak: 5,
+    longBreak: 15,
+    soundEnabled: true
+};
 
 const fieldConfig = [
-    { input: pomodoroInput, key: "pomodoro", label: "Pomodoro", min: 1, max: 120 },
-    { input: shortBreakInput, key: "shortBreak", label: "Short break", min: 1, max: 30 },
-    { input: longBreakInput, key: "longBreak", label: "Long break", min: 1, max: 80 }
+    { input: pomodoroInput, key: "pomodoro", label: "Pomodoro", min: 1, max: 120, defaultValue: defaultSettings.pomodoro },
+    { input: shortBreakInput, key: "shortBreak", label: "Short break", min: 1, max: 30, defaultValue: defaultSettings.shortBreak },
+    { input: longBreakInput, key: "longBreak", label: "Long break", min: 1, max: 80, defaultValue: defaultSettings.longBreak }
 ];
 
 let savedSettings = loadSettingsFromStorage();
@@ -60,23 +66,51 @@ function showValidationError(message, invalidInputs) {
     }
 }
 
+function normalizeMinuteInputValue(input, config) {
+    const rawValue = input.value.trim();
+
+    if (rawValue === "") {
+        return { value: null, isValid: false };
+    }
+
+    const numericValue = Number(rawValue);
+    if (!Number.isFinite(numericValue)) {
+        return { value: null, isValid: false };
+    }
+
+    const flooredValue = Math.floor(numericValue);
+
+    if (flooredValue < config.min) {
+        input.value = String(config.defaultValue);
+        return { value: config.defaultValue, isValid: true };
+    }
+
+    input.value = String(flooredValue);
+
+    if (flooredValue > config.max) {
+        return { value: flooredValue, isValid: false };
+    }
+
+    return { value: flooredValue, isValid: true };
+}
+
 function validateSettingsDraft() {
     clearValidationState();
-
     const draft = {
-        pomodoro: Number(pomodoroInput.value),
-        shortBreak: Number(shortBreakInput.value),
-        longBreak: Number(longBreakInput.value),
         soundEnabled: soundEnabledInput.checked
     };
 
     for (const { input, key, label, min, max } of fieldConfig) {
-        const value = draft[key];
-        if (!Number.isInteger(value) || value < min || value > max) {
+        const normalizedField = normalizeMinuteInputValue(input, { key, label, min, max, defaultValue: fieldConfig.find(field => field.key === key).defaultValue });
+        const value = normalizedField.value;
+
+        if (!normalizedField.isValid || !Number.isInteger(value) || value < min || value > max) {
             showValidationError(`${label} must be between ${min} and ${max}.`, [input]);
             input.focus();
             return null;
         }
+
+        draft[key] = value;
     }
 
     return timerStateStore.normalizeSettings(draft);
@@ -127,6 +161,13 @@ fieldConfig.forEach(({ input }) => {
             settingsError.textContent = "";
             settingsError.classList.add("hidden");
         }
+    });
+
+    input.addEventListener("change", () => {
+        const config = fieldConfig.find(field => field.input === input);
+        if (!config) return;
+
+        normalizeMinuteInputValue(input, config);
     });
 });
 

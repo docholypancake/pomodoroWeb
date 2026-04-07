@@ -34,17 +34,19 @@
 
 ### Timer Settings Negative Cases
 - Enter `0` in Pomodoro and click `Save & Close`.
-  Expected result: save is blocked, `Pomodoro must be between 1 and 120.` is shown, and stored settings remain unchanged.
+  Expected result: the field resets to its default value (`25` for Pomodoro), the value is accepted, and reopening Settings shows the defaulted value.
 - Enter `121` in Pomodoro and click `Save & Close`.
   Expected result: save is blocked with the same inline validation behavior.
 - Enter `0` or `31` in Short Break and click `Save & Close`.
-  Expected result: save is blocked and `Short break must be between 1 and 30.` is shown.
+  Expected result: `0` resets to the default short break value (`5`), while `31` is blocked with `Short break must be between 1 and 30.`.
 - Enter `0` or `81` in Long Break and click `Save & Close`.
-  Expected result: save is blocked and `Long break must be between 1 and 80.` is shown.
+  Expected result: `0` resets to the default long break value (`15`), while `81` is blocked with `Long break must be between 1 and 80.`.
 - Clear a numeric field so it becomes blank, then click `Save & Close`.
   Expected result: save is blocked, the field is marked invalid, and previously saved values are preserved.
-- Enter a non-integer such as `2.5` or non-numeric text through browser devtools/manual DOM edit, then click `Save & Close`.
-  Expected result: save is blocked because only integer values in range are accepted.
+- Enter a decimal such as `5.5` and click `Save & Close`.
+  Expected result: the field is floored to `5`, the displayed value changes to `5`, and the save succeeds.
+- Enter non-numeric text through browser devtools/manual DOM edit, then click `Save & Close`.
+  Expected result: save is blocked because the field must resolve to a whole number within that field’s allowed range.
 - Start the timer and attempt to open Settings.
   Expected result: the Settings button stays disabled and the settings panel does not open while the timer is running.
 - Corrupt `pomodoroSettings` in localStorage manually, then reload and open Settings.

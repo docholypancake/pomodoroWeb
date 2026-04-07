@@ -122,8 +122,10 @@ test.describe("timer persistence", () => {
 
         await page.fill("#pomodoroTime", "0");
         await page.click("#saveSettings");
-        await expect(page.locator("#settingsError")).toContainText("Pomodoro must be between 1 and 120.");
+        await expect(page.locator("#settingsError")).toBeHidden();
+        await expect(page.locator("#settingsSection")).toHaveClass(/hidden/);
 
+        await page.click("#settingsToggle");
         await page.fill("#pomodoroTime", "30");
         await page.fill("#shortBreakTime", "6");
         await page.fill("#longBreakTime", "20");
