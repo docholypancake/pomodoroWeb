@@ -23,24 +23,35 @@ function sendResponse(response, statusCode, body, contentType = "text/plain; cha
 }
 
 function resolveRequestPath(requestUrl) {
-    const cleanPath = decodeURIComponent((requestUrl || "/").split("?")[0]);
+    let cleanPath;
+
+    try {
+        cleanPath = decodeURIComponent((requestUrl || "/").split("?")[0]);
+    } catch (error) {
+        return { errorStatusCode: 400, absolutePath: null };
+    }
+
     const relativePath = cleanPath === "/" ? "/index.html" : cleanPath;
     const absolutePath = path.resolve(ROOT, `.${relativePath}`);
 
     if (!absolutePath.startsWith(ROOT)) {
-        return null;
+        return { errorStatusCode: 403, absolutePath: null };
     }
 
-    return absolutePath;
+    return { errorStatusCode: null, absolutePath };
 }
 
 const server = http.createServer((request, response) => {
-    const targetPath = resolveRequestPath(request.url);
-    if (!targetPath) {
-        sendResponse(response, 403, "Forbidden");
+    const resolvedRequest = resolveRequestPath(request.url);
+    if (resolvedRequest.errorStatusCode) {
+        const errorMessage = resolvedRequest.errorStatusCode === 400
+            ? "Bad request"
+            : "Forbidden";
+        sendResponse(response, resolvedRequest.errorStatusCode, errorMessage);
         return;
     }
 
+    const targetPath = resolvedRequest.absolutePath;
     fs.stat(targetPath, (statError, stats) => {
         if (statError) {
             sendResponse(response, 404, "Not found");
