@@ -157,6 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <button class="productivity-action productivity-action--primary" type="button" data-action="save-edit">Save</button>
                         <button class="productivity-action" type="button" data-action="cancel-edit">Cancel</button>
                     </div>
+                    <p class="form-message hidden productivity-item__message" data-edit-message="todo" aria-live="polite"></p>
                 </li>
             `;
         }
@@ -199,6 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <button class="productivity-action productivity-action--primary" type="button" data-action="save-edit">Save</button>
                         <button class="productivity-action" type="button" data-action="cancel-edit">Cancel</button>
                     </div>
+                    <p class="form-message hidden productivity-item__message" data-edit-message="notes" aria-live="polite"></p>
                 </li>
             `;
         }
@@ -290,14 +292,25 @@ document.addEventListener("DOMContentLoaded", () => {
         const type = itemElement.dataset.itemType;
         const itemId = itemElement.dataset.itemId;
         const editor = itemElement.querySelector(`[data-edit-field="${type}"]`);
+        const messageElement = itemElement.querySelector(`[data-edit-message="${type}"]`);
         const nextValue = editor?.value.trim() || "";
 
         markInvalid(editor, false);
+        if (messageElement) {
+            messageElement.textContent = "";
+            messageElement.classList.add("hidden");
+            messageElement.classList.remove("form-message--error");
+        }
 
         if (!type || !itemId || !editor) return;
 
         if (!nextValue) {
             markInvalid(editor, true);
+            if (messageElement) {
+                messageElement.textContent = `Please enter a ${itemLabels[type]} before saving it.`;
+                messageElement.classList.remove("hidden");
+                messageElement.classList.add("form-message--error");
+            }
             editor.focus();
             return;
         }

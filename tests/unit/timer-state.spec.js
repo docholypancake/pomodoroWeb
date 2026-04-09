@@ -24,6 +24,36 @@ describe("timer-state", () => {
         });
     });
 
+    it("defaults zero, negative, and missing settings values", () => {
+        expect(timerState.normalizeSettings({
+            pomodoro: 0,
+            shortBreak: -3,
+            longBreak: undefined
+        })).toEqual({
+            pomodoro: 25,
+            shortBreak: 5,
+            longBreak: 15,
+            soundEnabled: true
+        });
+    });
+
+    it("maps modes to the correct settings keys and durations", () => {
+        const settings = {
+            pomodoro: 45,
+            shortBreak: 8,
+            longBreak: 30,
+            soundEnabled: true
+        };
+
+        expect(timerState.getSettingsKey("pomodoro")).toBe("pomodoro");
+        expect(timerState.getSettingsKey("short-break")).toBe("shortBreak");
+        expect(timerState.getSettingsKey("long-break")).toBe("longBreak");
+        expect(timerState.getSettingsKey("unexpected")).toBe("pomodoro");
+        expect(timerState.getModeDurationSeconds(settings, "pomodoro")).toBe(45 * 60);
+        expect(timerState.getModeDurationSeconds(settings, "short-break")).toBe(8 * 60);
+        expect(timerState.getModeDurationSeconds(settings, "long-break")).toBe(30 * 60);
+    });
+
     it("normalizes timer state with fallback mode and remaining time", () => {
         const settings = { pomodoro: 10, shortBreak: 3, longBreak: 20, soundEnabled: true };
 
@@ -39,6 +69,22 @@ describe("timer-state", () => {
             endTime: null,
             remainingSeconds: 10 * 60,
             completedPomodorosInCycle: 4
+        });
+    });
+
+    it("clears stale endTime values when the timer is paused", () => {
+        expect(timerState.normalizeTimerState({
+            currentMode: "short-break",
+            isRunning: false,
+            endTime: Date.now() + 100_000,
+            remainingSeconds: 55,
+            completedPomodorosInCycle: -99
+        }, timerState.getDefaultSettings())).toEqual({
+            currentMode: "short-break",
+            isRunning: false,
+            endTime: null,
+            remainingSeconds: 55,
+            completedPomodorosInCycle: 0
         });
     });
 
@@ -75,6 +121,7 @@ describe("timer-state", () => {
     });
 
     it("falls back to defaults when saved settings JSON is malformed", () => {
+        vi.spyOn(console, "warn").mockImplementation(() => {});
         localStorage.setItem(timerState.keys.SETTINGS_KEY, "{broken");
         expect(timerState.loadSettings()).toEqual(timerState.getDefaultSettings());
     });
@@ -128,6 +175,23 @@ describe("timer-state", () => {
         expect(started.remainingSeconds).toBe(5 * 60);
     });
 
+    it("returns the existing running timer state unchanged when start is pressed again", () => {
+        const now = 121_000;
+        expect(timerState.startTimerState({
+            currentMode: "pomodoro",
+            isRunning: true,
+            endTime: now + 55_000,
+            remainingSeconds: 55,
+            completedPomodorosInCycle: 2
+        }, timerState.getDefaultSettings(), now)).toEqual({
+            currentMode: "pomodoro",
+            isRunning: true,
+            endTime: now + 55_000,
+            remainingSeconds: 55,
+            completedPomodorosInCycle: 2
+        });
+    });
+
     it("pauses a running timer using the live remaining time", () => {
         const now = 200_000;
         const paused = timerState.pauseTimerState({
@@ -141,6 +205,22 @@ describe("timer-state", () => {
         expect(paused.isRunning).toBe(false);
         expect(paused.endTime).toBe(null);
         expect(paused.remainingSeconds).toBe(19);
+    });
+
+    it("keeps a paused timer paused when pause is requested again", () => {
+        expect(timerState.pauseTimerState({
+            currentMode: "long-break",
+            isRunning: false,
+            endTime: 999_999,
+            remainingSeconds: 88,
+            completedPomodorosInCycle: 4
+        }, timerState.getDefaultSettings(), 500_000)).toEqual({
+            currentMode: "long-break",
+            isRunning: false,
+            endTime: null,
+            remainingSeconds: 88,
+            completedPomodorosInCycle: 4
+        });
     });
 
     it("hydrates pomodoro completion into short break", () => {
@@ -162,6 +242,22 @@ describe("timer-state", () => {
         expect(hydrated.isRunning).toBe(true);
         expect(hydrated.completedPomodorosInCycle).toBe(1);
         expect(hydrated.remainingSeconds).toBe(5 * 60 - 1);
+    });
+
+    it("hydrates a paused timer without changing its mode or remaining time", () => {
+        expect(timerState.hydrateTimerState({
+            currentMode: "short-break",
+            isRunning: false,
+            endTime: Date.now() + 15_000,
+            remainingSeconds: 42,
+            completedPomodorosInCycle: 1
+        }, timerState.getDefaultSettings(), Date.now())).toEqual({
+            currentMode: "short-break",
+            isRunning: false,
+            endTime: null,
+            remainingSeconds: 42,
+            completedPomodorosInCycle: 1
+        });
     });
 
     it("hydrates across multiple elapsed segments into the correct later pomodoro", () => {
@@ -293,10 +389,30 @@ describe("timer-state", () => {
             completedPomodorosInCycle: 1
         });
 
+        vi.spyOn(console, "warn").mockImplementation(() => {});
         localStorage.setItem(timerState.keys.TIMER_STATE_KEY, "{bad");
         expect(timerState.loadTimerState(timerState.getDefaultSettings())).toEqual(
             timerState.getDefaultTimerState(timerState.getDefaultSettings())
         );
+    });
+
+    it("hydrates stored running timer state when loading from localStorage", () => {
+        vi.spyOn(Date, "now").mockReturnValue(1_000_000);
+        localStorage.setItem(timerState.keys.TIMER_STATE_KEY, JSON.stringify({
+            currentMode: "pomodoro",
+            isRunning: true,
+            endTime: 1_020_000,
+            remainingSeconds: 25 * 60,
+            completedPomodorosInCycle: 0
+        }));
+
+        expect(timerState.loadTimerState(timerState.getDefaultSettings())).toEqual({
+            currentMode: "pomodoro",
+            isRunning: true,
+            endTime: 1_020_000,
+            remainingSeconds: 20,
+            completedPomodorosInCycle: 0
+        });
     });
 
     it("resets timer state using saved settings when explicit settings are absent", () => {
@@ -333,5 +449,12 @@ describe("timer-state", () => {
 
         expect(timerState.areStatesEqual(state, { ...state })).toBe(true);
         expect(timerState.areStatesEqual(state, { ...state, remainingSeconds: 455 })).toBe(false);
+    });
+
+    it("caps the displayed pomodoro number at the cycle maximum", () => {
+        expect(timerState.getCurrentPomodoroNumber({
+            currentMode: "pomodoro",
+            completedPomodorosInCycle: 99
+        })).toBe(4);
     });
 });

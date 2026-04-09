@@ -11,6 +11,7 @@ const soundEnabledInput = document.getElementById("soundEnabled");
 const settingsError = document.getElementById("settingsError");
 
 const timerStateStore = window.PomodoroTimerState;
+const settingsValidationApi = window.PomodoroSettingsValidation;
 const defaultSettings = timerStateStore ? timerStateStore.getDefaultSettings() : {
     pomodoro: 25,
     shortBreak: 5,
@@ -18,11 +19,22 @@ const defaultSettings = timerStateStore ? timerStateStore.getDefaultSettings() :
     soundEnabled: true
 };
 
-const fieldConfig = [
-    { input: pomodoroInput, key: "pomodoro", label: "Pomodoro", min: 1, max: 120, defaultValue: defaultSettings.pomodoro },
-    { input: shortBreakInput, key: "shortBreak", label: "Short break", min: 1, max: 30, defaultValue: defaultSettings.shortBreak },
-    { input: longBreakInput, key: "longBreak", label: "Long break", min: 1, max: 80, defaultValue: defaultSettings.longBreak }
-];
+const fieldConfig = (
+    settingsValidationApi
+        ? settingsValidationApi.buildFieldConfig(defaultSettings)
+        : [
+            { key: "pomodoro", label: "Pomodoro", min: 1, max: 120, defaultValue: defaultSettings.pomodoro },
+            { key: "shortBreak", label: "Short break", min: 1, max: 30, defaultValue: defaultSettings.shortBreak },
+            { key: "longBreak", label: "Long break", min: 1, max: 80, defaultValue: defaultSettings.longBreak }
+        ]
+).map(config => ({
+    ...config,
+    input: {
+        pomodoro: pomodoroInput,
+        shortBreak: shortBreakInput,
+        longBreak: longBreakInput
+    }[config.key]
+}));
 
 let savedSettings = loadSettingsFromStorage();
 
@@ -67,35 +79,71 @@ function showValidationError(message, invalidInputs) {
 }
 
 function normalizeMinuteInputValue(input, config) {
-    const rawValue = input.value.trim();
+    if (settingsValidationApi) {
+        const normalized = settingsValidationApi.normalizeMinuteValue(input.value, config);
+        input.value = normalized.displayValue;
+        return normalized;
+    }
 
+    const rawValue = input.value.trim();
     if (rawValue === "") {
-        return { value: null, isValid: false };
+        return { value: null, isValid: false, displayValue: "" };
     }
 
     const numericValue = Number(rawValue);
     if (!Number.isFinite(numericValue)) {
-        return { value: null, isValid: false };
+        return { value: null, isValid: false, displayValue: rawValue };
     }
 
     const flooredValue = Math.floor(numericValue);
-
     if (flooredValue < config.min) {
         input.value = String(config.defaultValue);
-        return { value: config.defaultValue, isValid: true };
+        return { value: config.defaultValue, isValid: true, displayValue: String(config.defaultValue) };
     }
 
     input.value = String(flooredValue);
-
     if (flooredValue > config.max) {
-        return { value: flooredValue, isValid: false };
+        return { value: flooredValue, isValid: false, displayValue: String(flooredValue) };
     }
 
-    return { value: flooredValue, isValid: true };
+    return { value: flooredValue, isValid: true, displayValue: String(flooredValue) };
 }
 
 function validateSettingsDraft() {
     clearValidationState();
+    const rawDraft = {
+        pomodoro: pomodoroInput.value,
+        shortBreak: shortBreakInput.value,
+        longBreak: longBreakInput.value,
+        soundEnabled: soundEnabledInput.checked
+    };
+
+    if (settingsValidationApi && timerStateStore) {
+        const validation = settingsValidationApi.validateSettingsDraftValues(
+            rawDraft,
+            fieldConfig,
+            timerStateStore.normalizeSettings
+        );
+
+        fieldConfig.forEach(config => {
+            const normalizedField = validation.fieldResults?.[config.key];
+            if (normalizedField && typeof normalizedField.displayValue === "string") {
+                config.input.value = normalizedField.displayValue;
+            }
+        });
+
+        if (!validation.isValid) {
+            const invalidField = fieldConfig.find(config => config.key === validation.invalidKey);
+            if (invalidField?.input) {
+                showValidationError(validation.message, [invalidField.input]);
+                invalidField.input.focus();
+            }
+            return null;
+        }
+
+        return validation.draft;
+    }
+
     const draft = {
         soundEnabled: soundEnabledInput.checked
     };
@@ -113,7 +161,7 @@ function validateSettingsDraft() {
         draft[key] = value;
     }
 
-    return timerStateStore.normalizeSettings(draft);
+    return timerStateStore ? timerStateStore.normalizeSettings(draft) : draft;
 }
 
 function openSettings() {
