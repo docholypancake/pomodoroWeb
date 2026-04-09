@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
     "start:test-server": "node tests/server.js",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
@@ -17,8 +21,13 @@
     "test:regression:quiet": "TEST_EXPLANATIONS=0 playwright test -c playwright.regression.config.js"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.59.1",
+    "eslint": "^10.2.0",
+    "globals": "^17.4.0",
     "jsdom": "^26.1.0",
+    "prettier": "^3.8.1",
+    "vite": "^7.3.2",
     "vitest": "^3.2.4"
   }
 }

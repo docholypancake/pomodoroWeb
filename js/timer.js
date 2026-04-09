@@ -1,6 +1,7 @@
+import timerStateStore from "./timer-state.js";
+import soundManager from "./sound.js";
+
 document.addEventListener("DOMContentLoaded", () => {
-    const timerStateStore = window.PomodoroTimerState;
-    const soundManager = window.PomodoroSoundManager;
     const timeDisplay = document.getElementById("timeDisplay");
     const startBtn = document.getElementById("startBtn");
     const resetBtn = document.getElementById("resetBtn");
@@ -13,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const modeLabels = document.querySelectorAll(".mode-label");
     const settingsToggle = document.getElementById("settingsToggle");
 
-    if (!timerStateStore || !timeDisplay || !startBtn || !resetBtn || !timerLabel || !progressBar) return;
+    if (!timeDisplay || !startBtn || !resetBtn || !timerLabel || !progressBar) return;
 
     const labelText = {
         pomodoro: "Focus Time",
@@ -28,9 +29,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let timerWorker = null;
     let lastWorkerRunningState = null;
     try {
-        timerWorker = new Worker("js/worker.js");
-    } catch (error) {
-        console.warn("Web Workers require a server context (e.g., Live Server) to function.");
+        timerWorker = new Worker(new URL("./worker.js", import.meta.url), { type: "module" });
+    } catch {
+        console.warn("Web Workers require a server context (e.g., Vite dev server) to function.");
     }
 
     let settings = timerStateStore.loadSettings();
@@ -47,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function playSound(fileName) {
-        soundManager?.play(fileName, settings.soundEnabled);
+        soundManager.play(fileName, settings.soundEnabled);
     }
 
     function setWorkerState(shouldRun) {
@@ -175,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (timerWorker) {
-        timerWorker.onmessage = (event) => {
+        timerWorker.onmessage = event => {
             if (event.data === "tick") {
                 onTimerTick();
             }
@@ -211,14 +212,14 @@ document.addEventListener("DOMContentLoaded", () => {
         render();
     });
 
-    document.addEventListener("settings:updated", (event) => {
+    document.addEventListener("settings:updated", event => {
         settings = event.detail;
         timerState = timerStateStore.applySettingsToTimerState(timerState, settings);
         persistTimerState();
         render();
     });
 
-    window.addEventListener("storage", (event) => {
+    window.addEventListener("storage", event => {
         if (event.key === timerStateStore.keys.SETTINGS_KEY) {
             settings = timerStateStore.loadSettings();
         }

@@ -1,3 +1,6 @@
+import timerStateStore from "./timer-state.js";
+import settingsValidationApi from "./settings-validation.js";
+
 const settingsToggle = document.getElementById("settingsToggle");
 const timerSection = document.getElementById("timerSection");
 const settingsSection = document.getElementById("settingsSection");
@@ -10,24 +13,9 @@ const longBreakInput = document.getElementById("longBreakTime");
 const soundEnabledInput = document.getElementById("soundEnabled");
 const settingsError = document.getElementById("settingsError");
 
-const timerStateStore = window.PomodoroTimerState;
-const settingsValidationApi = window.PomodoroSettingsValidation;
-const defaultSettings = timerStateStore ? timerStateStore.getDefaultSettings() : {
-    pomodoro: 25,
-    shortBreak: 5,
-    longBreak: 15,
-    soundEnabled: true
-};
+const defaultSettings = timerStateStore.getDefaultSettings();
 
-const fieldConfig = (
-    settingsValidationApi
-        ? settingsValidationApi.buildFieldConfig(defaultSettings)
-        : [
-            { key: "pomodoro", label: "Pomodoro", min: 1, max: 120, defaultValue: defaultSettings.pomodoro },
-            { key: "shortBreak", label: "Short break", min: 1, max: 30, defaultValue: defaultSettings.shortBreak },
-            { key: "longBreak", label: "Long break", min: 1, max: 80, defaultValue: defaultSettings.longBreak }
-        ]
-).map(config => ({
+const fieldConfig = settingsValidationApi.buildFieldConfig(defaultSettings).map(config => ({
     ...config,
     input: {
         pomodoro: pomodoroInput,
@@ -39,12 +27,7 @@ const fieldConfig = (
 let savedSettings = loadSettingsFromStorage();
 
 function loadSettingsFromStorage() {
-    return timerStateStore ? timerStateStore.loadSettings() : {
-        pomodoro: 25,
-        shortBreak: 5,
-        longBreak: 15,
-        soundEnabled: true
-    };
+    return timerStateStore.loadSettings();
 }
 
 function applySettingsToInputs(settings) {
@@ -79,34 +62,9 @@ function showValidationError(message, invalidInputs) {
 }
 
 function normalizeMinuteInputValue(input, config) {
-    if (settingsValidationApi) {
-        const normalized = settingsValidationApi.normalizeMinuteValue(input.value, config);
-        input.value = normalized.displayValue;
-        return normalized;
-    }
-
-    const rawValue = input.value.trim();
-    if (rawValue === "") {
-        return { value: null, isValid: false, displayValue: "" };
-    }
-
-    const numericValue = Number(rawValue);
-    if (!Number.isFinite(numericValue)) {
-        return { value: null, isValid: false, displayValue: rawValue };
-    }
-
-    const flooredValue = Math.floor(numericValue);
-    if (flooredValue < config.min) {
-        input.value = String(config.defaultValue);
-        return { value: config.defaultValue, isValid: true, displayValue: String(config.defaultValue) };
-    }
-
-    input.value = String(flooredValue);
-    if (flooredValue > config.max) {
-        return { value: flooredValue, isValid: false, displayValue: String(flooredValue) };
-    }
-
-    return { value: flooredValue, isValid: true, displayValue: String(flooredValue) };
+    const normalized = settingsValidationApi.normalizeMinuteValue(input.value, config);
+    input.value = normalized.displayValue;
+    return normalized;
 }
 
 function validateSettingsDraft() {
@@ -118,50 +76,29 @@ function validateSettingsDraft() {
         soundEnabled: soundEnabledInput.checked
     };
 
-    if (settingsValidationApi && timerStateStore) {
-        const validation = settingsValidationApi.validateSettingsDraftValues(
-            rawDraft,
-            fieldConfig,
-            timerStateStore.normalizeSettings
-        );
+    const validation = settingsValidationApi.validateSettingsDraftValues(
+        rawDraft,
+        fieldConfig,
+        timerStateStore.normalizeSettings
+    );
 
-        fieldConfig.forEach(config => {
-            const normalizedField = validation.fieldResults?.[config.key];
-            if (normalizedField && typeof normalizedField.displayValue === "string") {
-                config.input.value = normalizedField.displayValue;
-            }
-        });
-
-        if (!validation.isValid) {
-            const invalidField = fieldConfig.find(config => config.key === validation.invalidKey);
-            if (invalidField?.input) {
-                showValidationError(validation.message, [invalidField.input]);
-                invalidField.input.focus();
-            }
-            return null;
+    fieldConfig.forEach(config => {
+        const normalizedField = validation.fieldResults?.[config.key];
+        if (normalizedField && typeof normalizedField.displayValue === "string") {
+            config.input.value = normalizedField.displayValue;
         }
+    });
 
-        return validation.draft;
+    if (!validation.isValid) {
+        const invalidField = fieldConfig.find(config => config.key === validation.invalidKey);
+        if (invalidField?.input) {
+            showValidationError(validation.message, [invalidField.input]);
+            invalidField.input.focus();
+        }
+        return null;
     }
 
-    const draft = {
-        soundEnabled: soundEnabledInput.checked
-    };
-
-    for (const { input, key, label, min, max, defaultValue } of fieldConfig) {
-        const normalizedField = normalizeMinuteInputValue(input, { key, label, min, max, defaultValue });
-        const value = normalizedField.value;
-
-        if (!normalizedField.isValid || !Number.isInteger(value) || value < min || value > max) {
-            showValidationError(`${label} must be between ${min} and ${max}.`, [input]);
-            input.focus();
-            return null;
-        }
-
-        draft[key] = value;
-    }
-
-    return timerStateStore ? timerStateStore.normalizeSettings(draft) : draft;
+    return validation.draft;
 }
 
 function openSettings() {
@@ -219,8 +156,8 @@ fieldConfig.forEach(({ input }) => {
     });
 });
 
-window.addEventListener("storage", (event) => {
-    if (!timerStateStore || event.key !== timerStateStore.keys.SETTINGS_KEY) return;
+window.addEventListener("storage", event => {
+    if (event.key !== timerStateStore.keys.SETTINGS_KEY) return;
 
     savedSettings = loadSettingsFromStorage();
     if (!settingsSection.classList.contains("hidden")) {
@@ -229,8 +166,6 @@ window.addEventListener("storage", (event) => {
     }
 });
 
-if (timerStateStore) {
-    savedSettings = loadSettingsFromStorage();
-    applySettingsToInputs(savedSettings);
-    document.dispatchEvent(new CustomEvent("settings:loaded", { detail: savedSettings }));
-}
+savedSettings = loadSettingsFromStorage();
+applySettingsToInputs(savedSettings);
+document.dispatchEvent(new CustomEvent("settings:loaded", { detail: savedSettings }));
