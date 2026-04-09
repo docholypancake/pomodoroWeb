@@ -74,6 +74,7 @@ test.describe("smoke coverage", () => {
         await expect(page.locator("#todoInput")).toBeVisible();
         await expect(page.locator("#noteInput")).toBeHidden();
         await page.click('[data-tab-trigger="notes"]');
-        await expect(page.locator("#noteInput")).toBeVisible();
+        await expect(page.locator('#productivity-panel-notes')).not.toHaveClass(/hidden/);
+        await expect(page.locator('#productivity-panel-notes')).toHaveAttribute("aria-hidden", "false");
     });
 });

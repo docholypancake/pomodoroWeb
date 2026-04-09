@@ -27,7 +27,7 @@ function resolveRequestPath(requestUrl) {
 
     try {
         cleanPath = decodeURIComponent((requestUrl || "/").split("?")[0]);
-    } catch (error) {
+    } catch {
         return { errorStatusCode: 400, absolutePath: null };
     }
 

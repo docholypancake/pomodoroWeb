@@ -1,12 +1,13 @@
+import timerStateStore from "./timer-state.js";
+import soundManager from "./sound.js";
+
 document.addEventListener("DOMContentLoaded", () => {
-    const timerStateStore = window.PomodoroTimerState;
-    const soundManager = window.PomodoroSoundManager;
     const miniTimer = document.getElementById("miniTimer");
     const miniTimerMode = document.getElementById("miniTimerMode");
     const miniTimerTime = document.getElementById("miniTimerTime");
     const miniTimerStatus = document.getElementById("miniTimerStatus");
 
-    if (!timerStateStore || !miniTimer || !miniTimerMode || !miniTimerTime || !miniTimerStatus) return;
+    if (!miniTimer || !miniTimerMode || !miniTimerTime || !miniTimerStatus) return;
 
     const timerModeClasses = [
         "mini-timer--pomodoro",
@@ -25,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let timerState = timerStateStore.loadTimerState(settings);
 
     function playSound(fileName) {
-        soundManager?.play(fileName, settings.soundEnabled);
+        soundManager.play(fileName, settings.soundEnabled);
     }
 
     function formatTime(totalSeconds) {
@@ -112,18 +113,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    document.addEventListener("settings:updated", (event) => {
+    document.addEventListener("settings:updated", event => {
         settings = event.detail;
         const nextState = timerStateStore.applySettingsToTimerState(timerState, settings);
         applyIncomingState(nextState, settings, false);
         timerState = timerStateStore.saveTimerState(timerState, settings);
     });
 
-    document.addEventListener("timer:state-updated", (event) => {
+    document.addEventListener("timer:state-updated", event => {
         applyIncomingState(event.detail.state, event.detail.settings, true);
     });
 
-    window.addEventListener("storage", (event) => {
+    window.addEventListener("storage", event => {
         let nextSettings = settings;
         if (event.key === timerStateStore.keys.SETTINGS_KEY) {
             nextSettings = timerStateStore.loadSettings();
