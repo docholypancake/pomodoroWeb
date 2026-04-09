@@ -1,5 +1,44 @@
 const { test, expect } = require("@playwright/test");
 
+const fieldCases = [
+    {
+        key: "pomodoro",
+        selector: "#pomodoroTime",
+        min: 1,
+        max: 120,
+        defaultValue: 25,
+        validValue: 30,
+        decimalValue: "5.9",
+        flooredValue: "5",
+        aboveMax: "121",
+        error: "Pomodoro must be between 1 and 120."
+    },
+    {
+        key: "shortBreak",
+        selector: "#shortBreakTime",
+        min: 1,
+        max: 30,
+        defaultValue: 5,
+        validValue: 6,
+        decimalValue: "7.9",
+        flooredValue: "7",
+        aboveMax: "31",
+        error: "Short break must be between 1 and 30."
+    },
+    {
+        key: "longBreak",
+        selector: "#longBreakTime",
+        min: 1,
+        max: 80,
+        defaultValue: 15,
+        validValue: 20,
+        decimalValue: "9.9",
+        flooredValue: "9",
+        aboveMax: "81",
+        error: "Long break must be between 1 and 80."
+    }
+];
+
 async function openSettings(page) {
     await page.goto("/index.html");
     await page.click("#settingsToggle");
@@ -31,6 +70,11 @@ async function saveSettings(page, { pomodoro, shortBreak, longBreak, soundEnable
     }
 
     await page.click("#saveSettings");
+}
+
+async function changeAndBlur(page, selector, rawValue) {
+    await page.fill(selector, rawValue);
+    await page.locator(selector).dispatchEvent("change");
 }
 
 test.describe("timer settings automation", () => {
@@ -96,6 +140,26 @@ test.describe("timer settings automation", () => {
         });
     });
 
+    test("persists sound toggle changes off and back on", async ({ page }) => {
+        await openSettings(page);
+        await saveSettings(page, {
+            pomodoro: 25,
+            shortBreak: 5,
+            longBreak: 15,
+            soundEnabled: false
+        });
+
+        await page.reload();
+        await page.click("#settingsToggle");
+        await expect(page.locator("#soundEnabled")).not.toBeChecked();
+
+        await page.check("#soundEnabled");
+        await page.click("#saveSettings");
+        await page.reload();
+        await page.click("#settingsToggle");
+        await expect(page.locator("#soundEnabled")).toBeChecked();
+    });
+
     test("cancel discards unsaved changes", async ({ page }) => {
         await openSettings(page);
         await saveSettings(page, {
@@ -121,71 +185,92 @@ test.describe("timer settings automation", () => {
         });
     });
 
-    test("rejects blank pomodoro values", async ({ page }) => {
+    for (const fieldCase of fieldCases) {
+        test(`floors decimal ${fieldCase.key} values on change and save`, async ({ page }) => {
+            await openSettings(page);
+            await changeAndBlur(page, fieldCase.selector, fieldCase.decimalValue);
+            await expect(page.locator(fieldCase.selector)).toHaveValue(fieldCase.flooredValue);
+
+            await page.click("#saveSettings");
+            await expect(page.locator("#settingsError")).toBeHidden();
+            await expect(page.locator("#settingsSection")).toHaveClass(/hidden/);
+
+            await page.click("#settingsToggle");
+            await expect(page.locator(fieldCase.selector)).toHaveValue(fieldCase.flooredValue);
+        });
+
+        test(`defaults ${fieldCase.key} to its configured default when zero is entered`, async ({ page }) => {
+            await openSettings(page);
+            await changeAndBlur(page, fieldCase.selector, "0");
+            await expect(page.locator(fieldCase.selector)).toHaveValue(String(fieldCase.defaultValue));
+
+            await page.click("#saveSettings");
+            await expect(page.locator("#settingsSection")).toHaveClass(/hidden/);
+            await page.click("#settingsToggle");
+            await expect(page.locator(fieldCase.selector)).toHaveValue(String(fieldCase.defaultValue));
+        });
+
+        test(`defaults negative ${fieldCase.key} values back to its default`, async ({ page }) => {
+            await openSettings(page);
+            await changeAndBlur(page, fieldCase.selector, "-4");
+            await expect(page.locator(fieldCase.selector)).toHaveValue(String(fieldCase.defaultValue));
+        });
+
+        test(`rejects blank ${fieldCase.key} values`, async ({ page }) => {
+            await openSettings(page);
+            await page.locator(fieldCase.selector).clear();
+            await page.click("#saveSettings");
+
+            await expect(page.locator("#settingsError")).toContainText(fieldCase.error);
+            await expect(page.locator(fieldCase.selector)).toHaveAttribute("aria-invalid", "true");
+        });
+
+        test(`rejects ${fieldCase.key} values above the allowed range`, async ({ page }) => {
+            await openSettings(page);
+            await page.fill(fieldCase.selector, fieldCase.aboveMax);
+            await page.click("#saveSettings");
+
+            await expect(page.locator("#settingsError")).toContainText(fieldCase.error);
+            await expect(page.locator(fieldCase.selector)).toHaveAttribute("aria-invalid", "true");
+        });
+    }
+
+    test("clears validation state after the user edits an invalid field", async ({ page }) => {
         await openSettings(page);
-        await page.locator("#pomodoroTime").clear();
+        await page.fill("#pomodoroTime", "121");
         await page.click("#saveSettings");
 
         await expect(page.locator("#settingsError")).toContainText("Pomodoro must be between 1 and 120.");
         await expect(page.locator("#pomodoroTime")).toHaveAttribute("aria-invalid", "true");
+
+        await page.fill("#pomodoroTime", "60");
+        await expect(page.locator("#settingsError")).toBeHidden();
+        await expect(page.locator("#pomodoroTime")).not.toHaveAttribute("aria-invalid", "true");
     });
 
-    test("rejects pomodoro values below and above range", async ({ page }) => {
-        await openSettings(page);
+    test("syncs visible settings inputs when storage changes in another page", async ({ browser }) => {
+        const context = await browser.newContext();
+        const firstPage = await context.newPage();
+        const secondPage = await context.newPage();
 
-        await page.fill("#pomodoroTime", "0");
-        await page.click("#saveSettings");
-        await expect(page.locator("#settingsError")).toBeHidden();
-        await expect(page.locator("#settingsSection")).toHaveClass(/hidden/);
-        await page.click("#settingsToggle");
-        await expect(page.locator("#pomodoroTime")).toHaveValue("25");
+        await firstPage.goto("/index.html");
+        await firstPage.click("#settingsToggle");
+        await secondPage.goto("/index.html");
+        await secondPage.click("#settingsToggle");
 
-        await page.fill("#pomodoroTime", "121");
-        await page.click("#saveSettings");
-        await expect(page.locator("#settingsError")).toContainText("Pomodoro must be between 1 and 120.");
-    });
+        await saveSettings(secondPage, {
+            pomodoro: 44,
+            shortBreak: 9,
+            longBreak: 24,
+            soundEnabled: false
+        });
 
-    test("defaults short break values below range and rejects values above range", async ({ page }) => {
-        await openSettings(page);
+        await expect(firstPage.locator("#pomodoroTime")).toHaveValue("44");
+        await expect(firstPage.locator("#shortBreakTime")).toHaveValue("9");
+        await expect(firstPage.locator("#longBreakTime")).toHaveValue("24");
+        await expect(firstPage.locator("#soundEnabled")).not.toBeChecked();
 
-        await page.fill("#shortBreakTime", "0");
-        await page.click("#saveSettings");
-        await expect(page.locator("#settingsError")).toBeHidden();
-        await expect(page.locator("#settingsSection")).toHaveClass(/hidden/);
-        await page.click("#settingsToggle");
-        await expect(page.locator("#shortBreakTime")).toHaveValue("5");
-
-        await page.fill("#shortBreakTime", "31");
-        await page.click("#saveSettings");
-        await expect(page.locator("#settingsError")).toContainText("Short break must be between 1 and 30.");
-    });
-
-    test("defaults long break values below range and rejects values above range", async ({ page }) => {
-        await openSettings(page);
-
-        await page.fill("#longBreakTime", "0");
-        await page.click("#saveSettings");
-        await expect(page.locator("#settingsError")).toBeHidden();
-        await expect(page.locator("#settingsSection")).toHaveClass(/hidden/);
-        await page.click("#settingsToggle");
-        await expect(page.locator("#longBreakTime")).toHaveValue("15");
-
-        await page.fill("#longBreakTime", "81");
-        await page.click("#saveSettings");
-        await expect(page.locator("#settingsError")).toContainText("Long break must be between 1 and 80.");
-    });
-
-    test("rejects non-integer values", async ({ page }) => {
-        await openSettings(page);
-
-        await page.fill("#pomodoroTime", "2.5");
-        await page.click("#saveSettings");
-        await expect(page.locator("#settingsError")).toBeHidden();
-        await expect(page.locator("#settingsSection")).toHaveClass(/hidden/);
-        await expect(page.locator("#timeDisplay")).toHaveText("02:00");
-
-        await page.click("#settingsToggle");
-        await expect(page.locator("#pomodoroTime")).toHaveValue("2");
+        await context.close();
     });
 
     test("prevents opening settings while the timer is running", async ({ page }) => {
