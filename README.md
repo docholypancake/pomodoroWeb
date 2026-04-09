@@ -1,70 +1,113 @@
 # Pomodoro Web
 
-A web-based Pomodoro timer that runs in your browser tab to help you stay focused and productive.
+Pomodoro Web is a static browser-based focus app with a persistent 4-session Pomodoro timer, a mini timer for secondary pages, and a local-only productivity workspace for tasks and notes.
 
-## What is the Pomodoro Technique?
-The Pomodoro Technique is a time‑management method that splits work into focused sessions (Pomodoros) followed by short breaks.  
-It’s more effective than a basic timer because it builds rest into the workflow, reduces burnout, and keeps your focus consistent.
+## Product Overview
+- Persistent Pomodoro cycle that survives refreshes, tab switches, and browser restarts by rehydrating state from `localStorage`
+- Full 4-session cycle with Pomodoro, Short Break, and Long Break transitions
+- Mini timer in the header on secondary pages
+- Local productivity page with to-do and notes tabs
+- Optional transition sounds
+- No login, no backend, no sync requirement
 
-## Features
-- Pomodoro, Short Break, and Long Break modes
-- Start / Reset controls
-- Configurable session lengths
-- Optional sound notifications
-- Session counter for longer break tracking
+## Core Behavior
+- Timer state is stored in `localStorage` and recalculated from wall-clock time whenever the timer page is reopened.
+- After the fourth Pomodoro, the app runs the long break and then resets to idle Pomodoro 1.
+- Settings apply only while the timer is idle. Running timers do not get mutated mid-session.
+- Productivity items are stored locally and normalized on load so malformed stored data does not break the UI.
 
-## How to Use
-1. Open the app by following the link: https://docholypancake.github.io/pomodoroWeb/.
-2. Choose your mode (Pomodoro / Short Break / Long Break).
-3. Click **Start** and focus until the timer ends.
-4. Take the suggested break.
-5. Repeat the cycle; after a few sessions, take a longer break.
+## Validation Rules
+### Timer Settings
+- Pomodoro: `1` to `120`
+- Short Break: `1` to `30`
+- Long Break: `1` to `80`
+- `0` resets that specific field to its default value
+- Decimal values are floored: `5.5` becomes `5`
+- Negative values are rejected
+- Scientific and hexadecimal-like input such as `1e2` and `0x10` are rejected
 
-## Please note
-If you use Safari to run our timer, you won't be able to get sound notifications if run in the background, since Safari suspends most background tabs in about 10-15 seconds. Please use Pomodoro Web with Chrome for a better experience!
-
-## Settings
-Click the **Settings** button to customize:
-- Pomodoro duration  
-- Short break duration  
-- Long break duration  
-- Sound notifications  
-
-Changes apply immediately after saving.
+### Productivity Fields
+- Task input is trimmed, required, and capped to `160` characters
+- Note input is trimmed, required, and capped to `1200` characters
+- The same rules apply when items are restored from `localStorage`, not only when entered through the UI
 
 ## Pages
-- Timer: [index.html](index.html)  
-- About: [about.html](about.html)  
-- Help Us: [helpus.html](helpus.html)
+- Timer: `index.html`
+- Productivity: `productivity.html`
+- About: `about.html`
+- Help Us: `helpus.html`
 
-## Project Structure
+## Technical Notes
+- Static HTML/CSS/JS project
+- Shared timer state lives in `js/timer-state.js`
+- Shared settings validation lives in `js/settings-validation.js`
+- Shared productivity storage logic lives in `js/productivity-store.js`
+- Sound playback is coordinated through `js/sound.js`
+- Browser tests use Playwright
+- Unit tests use Vitest with `jsdom`
+
+## Run Locally
+Open the app directly in a browser for quick manual checks, or use the local test server for browser automation.
+
+Install dependencies:
+
+```bash
+npm install
 ```
+
+Run tests:
+
+```bash
+npm run test
+npm run test:unit
+npm run test:e2e
+npm run test:smoke
+npm run test:regression
+```
+
+Quiet mode without per-test `Expected / Actual` output:
+
+```bash
+npm run test:unit:quiet
+npm run test:e2e:quiet
+```
+
+## Test Coverage
+- Unit tests cover timer-state rules, settings validation, and productivity storage normalization
+- Smoke tests cover shell rendering, navigation, and page availability
+- E2E tests cover timer persistence, field validation, mini timer behavior, cross-page sync, and productivity CRUD flows
+- A manual checklist lives in `docs/testing/manual-test-plan.md`
+
+## Repository Structure
+```text
 index.html
+productivity.html
 about.html
 helpus.html
 css/
   style.css
+  modules/
 js/
+  timer-state.js
   timer.js
+  settings-validation.js
   settings.js
-  worker.js
-assets/
-  icon/
-    icon.ico
-  pictures/
-    author.jpg
-  sounds/
-    timer_sound_up.wav
-    timer_dound_down.wav
+  mini-timer.js
+  productivity-store.js
+  productivity.js
+  sound.js
+tests/
+  unit/
+  e2e/
+docs/
+  testing/
 ```
 
-## Run Locally
-You can open [index.html](index.html) directly in your browser.  
-For best results, use a local server (prevents asset loading issues).
+## Browser Note
+Safari can aggressively suspend background tabs, which may interfere with background audio playback even when timer state itself is restored correctly. Chrome-based browsers generally give the best experience for background sound behavior.
 
 ## Contributing
-- Suggest changes or report issues:  
-  https://github.com/docholypancake/pomodoroWeb/issues
+- Report bugs or suggest changes: https://github.com/docholypancake/pomodoroWeb/issues
 
 ## License
-See [LICENSE](LICENSE).
+See `LICENSE`.

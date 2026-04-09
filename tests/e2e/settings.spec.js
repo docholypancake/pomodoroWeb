@@ -210,10 +210,13 @@ test.describe("timer settings automation", () => {
             await expect(page.locator(fieldCase.selector)).toHaveValue(String(fieldCase.defaultValue));
         });
 
-        test(`defaults negative ${fieldCase.key} values back to its default`, async ({ page }) => {
+        test(`rejects negative ${fieldCase.key} values`, async ({ page }) => {
             await openSettings(page);
             await changeAndBlur(page, fieldCase.selector, "-4");
-            await expect(page.locator(fieldCase.selector)).toHaveValue(String(fieldCase.defaultValue));
+            await expect(page.locator(fieldCase.selector)).toHaveValue("-4");
+            await page.click("#saveSettings");
+            await expect(page.locator("#settingsError")).toContainText(fieldCase.error);
+            await expect(page.locator(fieldCase.selector)).toHaveAttribute("aria-invalid", "true");
         });
 
         test(`rejects blank ${fieldCase.key} values`, async ({ page }) => {
@@ -234,6 +237,28 @@ test.describe("timer settings automation", () => {
             await expect(page.locator(fieldCase.selector)).toHaveAttribute("aria-invalid", "true");
         });
     }
+
+    test("rejects scientific notation in settings fields", async ({ page }) => {
+        await openSettings(page);
+        await page.fill("#pomodoroTime", "1e2");
+        await page.click("#saveSettings");
+
+        await expect(page.locator("#settingsError")).toContainText("Pomodoro must be between 1 and 120.");
+        await expect(page.locator("#pomodoroTime")).toHaveAttribute("aria-invalid", "true");
+    });
+
+    test("rejects hexadecimal-like values in settings fields", async ({ page }) => {
+        await openSettings(page);
+        await page.evaluate(() => {
+            const input = document.querySelector("#pomodoroTime");
+            input.value = "0x10";
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+        await page.click("#saveSettings");
+
+        await expect(page.locator("#settingsError")).toContainText("Pomodoro must be between 1 and 120.");
+        await expect(page.locator("#pomodoroTime")).toHaveAttribute("aria-invalid", "true");
+    });
 
     test("clears validation state after the user edits an invalid field", async ({ page }) => {
         await openSettings(page);

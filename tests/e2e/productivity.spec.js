@@ -161,6 +161,7 @@ test.describe("productivity page", () => {
 
         await expect(page.locator('[data-edit-field="todo"]')).toBeVisible();
         await expect(page.locator('[data-edit-field="todo"]')).toHaveAttribute("aria-invalid", "true");
+        await expect(page.locator('[data-edit-message="todo"]')).toContainText("Please enter a task before saving it.");
     });
 
     test("rejects blank note edits and keeps the editor open", async ({ page }) => {
@@ -173,6 +174,28 @@ test.describe("productivity page", () => {
 
         await expect(page.locator('[data-edit-field="notes"]')).toBeVisible();
         await expect(page.locator('[data-edit-field="notes"]')).toHaveAttribute("aria-invalid", "true");
+        await expect(page.locator('[data-edit-message="notes"]')).toContainText("Please enter a note before saving it.");
+    });
+
+    test("drops invalid productivity entries seeded directly in localStorage", async ({ page }) => {
+        await page.addInitScript(() => {
+            localStorage.setItem("pomodoroProductivity.v1", JSON.stringify({
+                todo: [
+                    { id: "t1", text: "   ", completed: false, createdAt: "bad", updatedAt: "bad" },
+                    { id: "t2", text: "A".repeat(200), completed: false, createdAt: "2026-04-01T10:00:00.000Z", updatedAt: "2026-04-01T10:00:00.000Z" }
+                ],
+                notes: [
+                    { id: "n1", content: "   ", createdAt: "bad", updatedAt: "bad" },
+                    { id: "n2", content: "B".repeat(1400), createdAt: "2026-04-01T10:00:00.000Z", updatedAt: "2026-04-01T10:00:00.000Z" }
+                ]
+            }));
+        });
+
+        await page.goto("/productivity.html");
+        await expect(page.locator(".productivity-item__content")).toHaveText("A".repeat(160));
+
+        await openNotes(page);
+        await expect(page.locator(".productivity-note__content")).toHaveText("B".repeat(1200));
     });
 
     test("enforces the task maxlength during real typing", async ({ page }) => {

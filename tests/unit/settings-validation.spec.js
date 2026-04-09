@@ -3,6 +3,7 @@ import settingsValidation from "../../js/settings-validation.js";
 
 const {
     DEFAULT_SETTINGS,
+    DECIMAL_MINUTES_PATTERN,
     FIELD_LIMITS,
     buildFieldConfig,
     normalizeMinuteValue,
@@ -50,6 +51,8 @@ describe("settings-validation", () => {
         expect(FIELD_LIMITS.pomodoro.max).toBe(120);
         expect(FIELD_LIMITS.shortBreak.max).toBe(30);
         expect(FIELD_LIMITS.longBreak.max).toBe(80);
+        expect(DECIMAL_MINUTES_PATTERN.test("12.5")).toBe(true);
+        expect(DECIMAL_MINUTES_PATTERN.test("1e2")).toBe(false);
     });
 
     it("accepts valid integer values unchanged", () => {
@@ -70,19 +73,21 @@ describe("settings-validation", () => {
         });
     });
 
-    it("defaults zero and negative values back to each field default", () => {
+    it("defaults zero values back to each field default", () => {
         expect(normalizeMinuteValue("0", buildFieldConfig()[0])).toEqual({
             value: 25,
             isValid: true,
             displayValue: "25",
             reason: "below-min-defaulted"
         });
+    });
 
+    it("rejects negative values instead of silently defaulting them", () => {
         expect(normalizeMinuteValue("-8", buildFieldConfig()[1])).toEqual({
-            value: 5,
-            isValid: true,
-            displayValue: "5",
-            reason: "below-min-defaulted"
+            value: null,
+            isValid: false,
+            displayValue: "-8",
+            reason: "invalid-format"
         });
     });
 
@@ -100,7 +105,23 @@ describe("settings-validation", () => {
             value: null,
             isValid: false,
             displayValue: "abc",
-            reason: "non-numeric"
+            reason: "invalid-format"
+        });
+    });
+
+    it("rejects scientific and hexadecimal number formats", () => {
+        expect(normalizeMinuteValue("1e2", buildFieldConfig()[0])).toEqual({
+            value: null,
+            isValid: false,
+            displayValue: "1e2",
+            reason: "invalid-format"
+        });
+
+        expect(normalizeMinuteValue("0x10", buildFieldConfig()[0])).toEqual({
+            value: null,
+            isValid: false,
+            displayValue: "0x10",
+            reason: "invalid-format"
         });
     });
 

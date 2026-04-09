@@ -26,6 +26,7 @@
             max: 80
         }
     };
+    const DECIMAL_MINUTES_PATTERN = /^\d+(?:\.\d+)?$/;
 
     function buildFieldConfig(defaultSettings = DEFAULT_SETTINGS) {
         return Object.values(FIELD_LIMITS).map(field => ({
@@ -46,24 +47,33 @@
             };
         }
 
-        const numericValue = Number(trimmedValue);
-        if (!Number.isFinite(numericValue)) {
+        if (!DECIMAL_MINUTES_PATTERN.test(trimmedValue)) {
             return {
                 value: null,
                 isValid: false,
                 displayValue: trimmedValue,
-                reason: "non-numeric"
+                reason: "invalid-format"
             };
         }
 
+        const numericValue = Number(trimmedValue);
         const flooredValue = Math.floor(numericValue);
 
-        if (flooredValue < config.min) {
+        if (flooredValue === 0) {
             return {
                 value: config.defaultValue,
                 isValid: true,
                 displayValue: String(config.defaultValue),
                 reason: "below-min-defaulted"
+            };
+        }
+
+        if (flooredValue < config.min) {
+            return {
+                value: flooredValue,
+                isValid: false,
+                displayValue: String(flooredValue),
+                reason: "below-min"
             };
         }
 
@@ -124,6 +134,7 @@
     const api = {
         DEFAULT_SETTINGS,
         FIELD_LIMITS,
+        DECIMAL_MINUTES_PATTERN,
         buildFieldConfig,
         normalizeMinuteValue,
         validateSettingsDraftValues

@@ -3,7 +3,9 @@ import productivityStoreApi from "../../js/productivity-store.js";
 
 const {
     STORAGE_KEY,
+    ITEM_LIMITS,
     isValidTimestamp,
+    sanitizeTextValue,
     normalizeProductivityState,
     createProductivityStore
 } = productivityStoreApi;
@@ -23,6 +25,8 @@ describe("productivity-store", () => {
     it("uses the expected storage key", () => {
         expect(STORAGE_KEY).toBe("pomodoroProductivity.v1");
         expect(store.key).toBe(STORAGE_KEY);
+        expect(ITEM_LIMITS.todo).toBe(160);
+        expect(ITEM_LIMITS.notes).toBe(1200);
     });
 
     it("returns a fresh empty state object each time", () => {
@@ -42,14 +46,22 @@ describe("productivity-store", () => {
         expect(isValidTimestamp(null)).toBe(false);
     });
 
+    it("trims values, enforces maximum lengths, and rejects blank strings", () => {
+        expect(sanitizeTextValue("  hello  ", ITEM_LIMITS.todo)).toBe("hello");
+        expect(sanitizeTextValue("   ", ITEM_LIMITS.todo)).toBe(null);
+        expect(sanitizeTextValue("x".repeat(200), ITEM_LIMITS.todo)).toHaveLength(160);
+    });
+
     it("normalizes corrupted raw state into a safe empty/default structure", () => {
         expect(normalizeProductivityState({
             todo: [
                 { id: "1", text: "keep", completed: "yes", createdAt: "bad", updatedAt: "bad" },
+                { id: "2", text: "   ", completed: false },
                 { text: "drop-no-id" }
             ],
             notes: [
                 { id: "n1", content: "keep note", createdAt: "bad", updatedAt: "2026-04-07T10:00:00.000Z" },
+                { id: "n3", content: "   " },
                 { id: "n2", text: "drop-no-content" }
             ]
         }, () => fixedNow)).toEqual({
@@ -114,7 +126,7 @@ describe("productivity-store", () => {
 
     it("creates todo items at the top of the list", () => {
         const result = store.create("todo", {
-            text: "Write tests",
+            text: "  Write tests  ",
             completed: false
         });
 
@@ -144,7 +156,7 @@ describe("productivity-store", () => {
 
     it("creates notes with timestamps", () => {
         const result = store.create("notes", {
-            content: "Remember edge cases"
+            content: "  Remember edge cases  "
         });
 
         expect(result[0]).toEqual({
@@ -153,6 +165,17 @@ describe("productivity-store", () => {
             createdAt: fixedNow.toISOString(),
             updatedAt: fixedNow.toISOString()
         });
+    });
+
+    it("refuses to create blank items", () => {
+        expect(store.create("todo", {
+            text: "   ",
+            completed: false
+        })).toEqual([]);
+
+        expect(store.create("notes", {
+            content: "   "
+        })).toEqual([]);
     });
 
     it("updates matching items and preserves others", () => {
@@ -217,6 +240,32 @@ describe("productivity-store", () => {
                 createdAt: "2026-04-07T11:00:00.000Z",
                 updatedAt: fixedNow.toISOString()
             }
+        ]);
+    });
+
+    it("rejects blank updates and keeps the previous item content", () => {
+        store.save({
+            todo: [{
+                id: "a",
+                text: "Only",
+                completed: false,
+                createdAt: fixedNow.toISOString(),
+                updatedAt: fixedNow.toISOString()
+            }],
+            notes: [{
+                id: "n1",
+                content: "Saved",
+                createdAt: fixedNow.toISOString(),
+                updatedAt: fixedNow.toISOString()
+            }]
+        });
+
+        expect(store.update("todo", "a", { text: "   " })).toEqual([
+            { id: "a", text: "Only", completed: false, createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }
+        ]);
+
+        expect(store.update("notes", "n1", { content: "   " })).toEqual([
+            { id: "n1", content: "Saved", createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }
         ]);
     });
 
