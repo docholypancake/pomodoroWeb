@@ -4,7 +4,10 @@ module.exports = defineConfig({
     testDir: "./tests/e2e",
     timeout: 30_000,
     fullyParallel: true,
-    reporter: "list",
+    reporter: [
+        ["list"],
+        ["./tests/e2e/explanation-reporter.cjs"]
+    ],
     use: {
         baseURL: "http://127.0.0.1:4173",
         trace: "on-first-retry"
