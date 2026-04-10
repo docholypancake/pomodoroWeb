@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import settingsValidation from "../../js/settings-validation.js";
+import settingsValidation from "../../src/js/settings-validation.js";
 
 const {
     DEFAULT_SETTINGS,

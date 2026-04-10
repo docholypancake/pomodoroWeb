@@ -39,10 +39,10 @@ Pomodoro Web is a static browser-based focus app with a persistent 4-session Pom
 
 ## Technical Notes
 - Static HTML/CSS/JS project
-- Shared timer state lives in `js/timer-state.js`
-- Shared settings validation lives in `js/settings-validation.js`
-- Shared productivity storage logic lives in `js/productivity-store.js`
-- Sound playback is coordinated through `js/sound.js`
+- Shared timer state lives in `src/js/timer-state.js`
+- Shared settings validation lives in `src/js/settings-validation.js`
+- Shared productivity storage logic lives in `src/js/productivity-store.js`
+- Sound playback is coordinated through `src/js/sound.js`
 - Browser tests use Playwright
 - Unit tests use Vitest with `jsdom`
 
@@ -84,18 +84,21 @@ index.html
 productivity.html
 about.html
 helpus.html
-css/
-  style.css
-  modules/
-js/
-  timer-state.js
-  timer.js
-  settings-validation.js
-  settings.js
-  mini-timer.js
-  productivity-store.js
-  productivity.js
-  sound.js
+src/
+  assets/
+  css/
+    style.css
+    modules/
+  js/
+    timer-state.js
+    timer.js
+    settings-validation.js
+    settings.js
+    mini-timer.js
+    productivity-store.js
+    productivity.js
+    sound.js
+    entries/
 tests/
   unit/
   e2e/

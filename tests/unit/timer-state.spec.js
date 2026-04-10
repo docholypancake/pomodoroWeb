@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import timerState from "../../js/timer-state.js";
+import timerState from "../../src/js/timer-state.js";
 
 describe("timer-state", () => {
     beforeEach(() => {
