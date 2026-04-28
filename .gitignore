@@ -19,10 +19,13 @@ Gemfile.lock
 
 # Ignore .env files which may contain sensitive information
 .env
+.env.local
+.env.*.local
 
 # Ignore node_modules directory which may be used for frontend dependencies
 node_modules/
 dist/
+coverage/
 playwright-report/
 test-results/
 
