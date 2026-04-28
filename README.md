@@ -1,6 +1,10 @@
+[![CI/CD Pipeline](https://github.com/docholypancake/pomodoroWeb/actions/workflows/ci.yml/badge.svg)](https://github.com/docholypancake/pomodoroWeb/actions/workflows/ci.yml)
+
 # Pomodoro Web
 
 Pomodoro Web is a static browser-based focus app with a persistent 4-session Pomodoro timer, a mini timer for secondary pages, and a local-only productivity workspace for tasks and notes.
+
+Production: [docholypancake.github.io/pomodoroWeb](https://docholypancake.github.io/pomodoroWeb/)
 
 ## Product Overview
 - Persistent Pomodoro cycle that survives refreshes, tab switches, and browser restarts by rehydrating state from `localStorage`
