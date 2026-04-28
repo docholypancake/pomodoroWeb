@@ -58,7 +58,6 @@ function normalizeMinuteValue(rawValue, config) {
 
     const numericValue = Number(trimmedValue);
     const flooredValue = Math.floor(numericValue);
-
     if (flooredValue === 0) {
         return {
             value: config.defaultValue,

@@ -24,7 +24,7 @@ describe("worker", () => {
         vi.stubGlobal("setInterval", setIntervalMock);
         vi.stubGlobal("clearInterval", clearIntervalMock);
 
-        await import("../../js/worker.js");
+        await import("../../src/js/worker.js");
 
         globalThis.self.onmessage({ data: "start" });
         expect(setIntervalMock).toHaveBeenCalledTimes(1);

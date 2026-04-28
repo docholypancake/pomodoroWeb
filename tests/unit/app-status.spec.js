@@ -11,7 +11,7 @@ describe("app-status", () => {
             <span data-app-status>old</span>
         `;
 
-        await import("../../js/app-status.js");
+        await import("../../src/js/app-status.js");
 
         const values = Array.from(document.querySelectorAll("[data-app-status]"))
             .map(element => element.textContent);

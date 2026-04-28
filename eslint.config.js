@@ -25,7 +25,7 @@ module.exports = [
     },
     js.configs.recommended,
     {
-        files: ["js/**/*.js"],
+        files: ["src/js/**/*.js"],
         languageOptions: {
             sourceType: "module",
             globals: {

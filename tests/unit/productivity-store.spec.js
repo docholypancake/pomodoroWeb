@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import productivityStoreApi from "../../js/productivity-store.js";
+import productivityStoreApi from "../../src/js/productivity-store.js";
 
 const {
     STORAGE_KEY,

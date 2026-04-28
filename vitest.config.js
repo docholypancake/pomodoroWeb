@@ -15,9 +15,9 @@ module.exports = defineConfig({
         coverage: {
             provider: "v8",
             all: true,
-            include: ["js/**/*.js"],
+            include: ["src/js/**/*.js"],
             exclude: [
-                "js/entries/*.js"
+                "src/js/entries/*.js"
             ],
             reporter: ["text", "html", "json-summary"],
             reportsDirectory: "./coverage/unit"
