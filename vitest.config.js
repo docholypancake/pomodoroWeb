@@ -11,6 +11,16 @@ module.exports = defineConfig({
                 "default",
                 new (require("./tests/unit/explanation-reporter.cjs"))()
             ]
-            : ["default"]
+            : ["default"],
+        coverage: {
+            provider: "v8",
+            all: true,
+            include: ["js/**/*.js"],
+            exclude: [
+                "js/entries/*.js"
+            ],
+            reporter: ["text", "html", "json-summary"],
+            reportsDirectory: "./coverage/unit"
+        }
     }
 });
