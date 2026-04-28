@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const expectedStatus = import.meta.env?.VITE_APP_STATUS || "Unknown";
+
 describe("app-status", () => {
     beforeEach(() => {
         vi.resetModules();
@@ -16,6 +18,6 @@ describe("app-status", () => {
         const values = Array.from(document.querySelectorAll("[data-app-status]"))
             .map(element => element.textContent);
 
-        expect(values).toEqual(["Development", "Development"]);
+        expect(values).toEqual([expectedStatus, expectedStatus]);
     });
 });
