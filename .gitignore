@@ -25,6 +25,7 @@ Gemfile.lock
 # Ignore node_modules directory which may be used for frontend dependencies
 node_modules/
 dist/
+coverage/
 playwright-report/
 test-results/
 

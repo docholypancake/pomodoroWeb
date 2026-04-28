@@ -60,6 +60,7 @@ Run tests:
 ```bash
 npm run test
 npm run test:unit
+npm run test:unit:coverage
 npm run test:e2e
 npm run test:smoke
 npm run test:regression
@@ -74,8 +75,11 @@ npm run test:e2e:quiet
 
 ## Test Coverage
 - Unit tests cover timer-state rules, settings validation, and productivity storage normalization
+- A coverage report can be generated with `npm run test:unit:coverage`
+- HTML coverage output is written to `coverage/unit/index.html`
 - Smoke tests cover shell rendering, navigation, and page availability
 - E2E tests cover timer persistence, field validation, mini timer behavior, cross-page sync, and productivity CRUD flows
+- Coverage analysis notes live in `docs/testing/coverage-analysis.md`
 - A manual checklist lives in `docs/testing/manual-test-plan.md`
 
 ## Repository Structure
