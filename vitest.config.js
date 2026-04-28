@@ -5,6 +5,7 @@ module.exports = defineConfig({
     test: {
         environment: "jsdom",
         include: ["tests/unit/**/*.spec.js"],
+        setupFiles: ["./tests/unit/setup.js"],
         reporters: showExplanations
             ? [
                 "default",
