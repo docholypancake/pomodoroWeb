@@ -1,7 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
     const DEFAULT_TAB = "todo";
     const ITEM_TYPES = ["todo", "notes"];
+    const DEFAULT_TODO_PRIORITY = "normal";
+    const URGENT_TODO_PRIORITY = "urgent";
     const productivityStoreApi = window.PomodoroProductivityStore;
+    const analyticsApi = window.PomodoroAnalytics;
     const itemLabels = {
         todo: "task",
         notes: "note"
@@ -35,6 +38,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const formMessages = Object.fromEntries(
         ITEM_TYPES.map(type => [type, document.querySelector(`[data-form-message="${type}"]`)])
     );
+    const urgentFilterToolbar = document.getElementById("urgentFilterToolbar");
+    const urgentFilterBtn = document.getElementById("urgentFilterBtn");
 
     if (!tabButtons.length || !panels.length) return;
 
@@ -48,7 +53,9 @@ document.addEventListener("DOMContentLoaded", () => {
         editingByType: {
             todo: null,
             notes: null
-        }
+        },
+        urgentFilterAvailable: false,
+        urgentFilterActive: false
     };
 
     function escapeHtml(value) {
@@ -71,6 +78,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function syncStateFromStorage() {
         state.items = storageAdapter.load();
+    }
+
+    function isUrgentTodo(item) {
+        return item?.priority === URGENT_TODO_PRIORITY;
+    }
+
+    function getTodoById(itemId) {
+        return state.items.todo.find(item => item.id === itemId) || null;
+    }
+
+    function getVisibleItems(type) {
+        const items = state.items[type];
+        if (type !== "todo" || !state.urgentFilterAvailable || !state.urgentFilterActive) {
+            return items;
+        }
+
+        return items.filter(isUrgentTodo);
     }
 
     function clearFormMessage(type) {
@@ -139,6 +163,9 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderTodoItem(item) {
         const isEditing = state.editingByType.todo === item.id;
         const completedClass = item.completed ? " productivity-item__content--completed" : "";
+        const urgentBadge = isUrgentTodo(item)
+            ? '<span class="productivity-item__badge">Urgent</span>'
+            : "";
 
         if (isEditing) {
             return `
@@ -171,7 +198,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         data-action="toggle-complete"
                         ${item.completed ? "checked" : ""}
                     >
-                    <span class="productivity-item__content${completedClass}">${escapeHtml(item.text)}</span>
+                    <span class="productivity-item__body">
+                        <span class="productivity-item__content${completedClass}">${escapeHtml(item.text)}</span>
+                        ${urgentBadge}
+                    </span>
                 </label>
                 <div class="productivity-item__actions">
                     <button class="productivity-action" type="button" data-action="edit">Edit</button>
@@ -221,7 +251,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderType(type) {
         const list = lists[type];
-        const items = state.items[type];
+        const items = getVisibleItems(type);
         if (!list) return;
 
         list.innerHTML = items.map(item => type === "todo" ? renderTodoItem(item) : renderNoteItem(item)).join("");
@@ -232,18 +262,30 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function renderUrgentFilter() {
+        if (!urgentFilterToolbar || !urgentFilterBtn) return;
+
+        urgentFilterToolbar.classList.toggle("hidden", !state.urgentFilterAvailable);
+        urgentFilterBtn.setAttribute("aria-pressed", state.urgentFilterActive ? "true" : "false");
+        urgentFilterBtn.classList.toggle("productivity-action--primary", state.urgentFilterActive);
+        urgentFilterBtn.textContent = state.urgentFilterActive ? "Showing urgent only" : "Show urgent only";
+    }
+
     function render() {
         ITEM_TYPES.forEach(type => {
             clearFormMessage(type);
             renderType(type);
         });
 
+        renderUrgentFilter();
         setActiveTab(state.activeTab);
     }
 
     function handleAdd(type, form) {
         const input = form.querySelector(`[name="${inputNames[type]}"]`);
         const value = getTrimmedValue(type, form);
+        const urgentCheckbox = form.querySelector('[name="isUrgent"]');
+        const priority = urgentCheckbox?.checked ? URGENT_TODO_PRIORITY : DEFAULT_TODO_PRIORITY;
 
         markInvalid(input, false);
         clearFormMessage(type);
@@ -251,15 +293,23 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!value) {
             markInvalid(input, true);
             showFormMessage(type, `Please enter a ${itemLabels[type]} before adding it.`);
+            if (type === "todo") {
+                analyticsApi?.captureTaskCreationValidationFailed({
+                    priority,
+                    reason: "blank_input"
+                });
+            }
             input?.focus();
             return;
         }
 
         if (type === "todo") {
-            storageAdapter.create("todo", {
+            const nextItems = storageAdapter.create("todo", {
                 text: value,
-                completed: false
+                completed: false,
+                priority
             });
+            analyticsApi?.captureTaskCreated(nextItems[0]);
         } else {
             storageAdapter.create("notes", {
                 content: value
@@ -268,7 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         syncStateFromStorage();
         form.reset();
-        renderType(type);
+        render();
         focusPrimaryInput(type);
     }
 
@@ -360,12 +410,21 @@ document.addEventListener("DOMContentLoaded", () => {
                     beginEditing(type, itemId);
                     break;
                 case "delete":
+                    if (type === "todo") {
+                        const taskToDelete = getTodoById(itemId);
+                        if (taskToDelete) {
+                            analyticsApi?.captureTaskDeleted(
+                                taskToDelete,
+                                taskToDelete.completed ? "removed_after_completion" : "manual_delete"
+                            );
+                        }
+                    }
                     storageAdapter.delete(type, itemId);
                     syncStateFromStorage();
                     if (state.editingByType[type] === itemId) {
                         state.editingByType[type] = null;
                     }
-                    renderType(type);
+                    render();
                     break;
                 case "cancel-edit":
                     stopEditing(type);
@@ -385,11 +444,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!checkbox || !itemId || type !== "todo") return;
 
+            const currentItem = getTodoById(itemId);
             storageAdapter.update("todo", itemId, {
                 completed: checkbox.checked
             });
             syncStateFromStorage();
-            renderType("todo");
+            const updatedItem = getTodoById(itemId);
+            if (checkbox.checked && updatedItem && !currentItem?.completed) {
+                analyticsApi?.captureTaskCompleted(updatedItem);
+            }
+            render();
         });
 
         lists[type]?.addEventListener("keydown", event => {
@@ -416,8 +480,26 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("storage", event => {
         if (event.key !== storageAdapter.key) return;
         syncStateFromStorage();
-        renderType("todo");
-        renderType("notes");
+        render();
+    });
+
+    urgentFilterBtn?.addEventListener("click", () => {
+        state.urgentFilterActive = !state.urgentFilterActive;
+        render();
+        analyticsApi?.captureUrgentFilterToggled(
+            state.urgentFilterActive,
+            getVisibleItems("todo").length,
+            state.items.todo.length
+        );
+    });
+
+    analyticsApi?.captureProductivityPageViewed();
+    analyticsApi?.onFeatureFlagsReady(() => {
+        state.urgentFilterAvailable = analyticsApi.isFeatureEnabled(analyticsApi.flags.urgentFilter);
+        if (!state.urgentFilterAvailable) {
+            state.urgentFilterActive = false;
+        }
+        render();
     });
 
     render();

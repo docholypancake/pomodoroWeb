@@ -1,3 +1,4 @@
+import "../analytics.js";
 import "../sound.js";
 import "../timer-state.js";
 import "../app-status.js";

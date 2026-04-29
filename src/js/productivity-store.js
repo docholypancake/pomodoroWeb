@@ -3,6 +3,10 @@ const ITEM_LIMITS = {
     todo: 160,
     notes: 1200
 };
+const TODO_PRIORITIES = {
+    NORMAL: "normal",
+    URGENT: "urgent"
+};
 
 function createId() {
     if (globalThis?.crypto?.randomUUID) {
@@ -38,6 +42,10 @@ function sanitizeTextValue(value, maxLength) {
     return trimmedValue.slice(0, maxLength);
 }
 
+function sanitizeTodoPriority(value) {
+    return value === TODO_PRIORITIES.URGENT ? TODO_PRIORITIES.URGENT : TODO_PRIORITIES.NORMAL;
+}
+
 function normalizeTodoItem(item, fallbackTimestamp) {
     const text = sanitizeTextValue(item?.text, ITEM_LIMITS.todo);
     if (!item || typeof item.id !== "string" || !text) {
@@ -48,6 +56,7 @@ function normalizeTodoItem(item, fallbackTimestamp) {
         id: item.id,
         text,
         completed: Boolean(item.completed),
+        priority: sanitizeTodoPriority(item.priority),
         createdAt: isValidTimestamp(item.createdAt) ? item.createdAt : fallbackTimestamp,
         updatedAt: isValidTimestamp(item.updatedAt) ? item.updatedAt : fallbackTimestamp
     };
@@ -74,7 +83,8 @@ function sanitizeCreatePayload(type, payload) {
 
         return {
             text,
-            completed: Boolean(payload?.completed)
+            completed: Boolean(payload?.completed),
+            priority: sanitizeTodoPriority(payload?.priority)
         };
     }
 
@@ -102,6 +112,10 @@ function sanitizeUpdateChanges(type, changes) {
 
         if (Object.prototype.hasOwnProperty.call(changes, "completed")) {
             nextChanges.completed = Boolean(changes.completed);
+        }
+
+        if (Object.prototype.hasOwnProperty.call(changes, "priority")) {
+            nextChanges.priority = sanitizeTodoPriority(changes.priority);
         }
 
         return Object.keys(nextChanges).length ? nextChanges : null;
@@ -216,10 +230,12 @@ function createProductivityStore(storage = globalThis?.localStorage, options = {
 const api = {
     STORAGE_KEY,
     ITEM_LIMITS,
+    TODO_PRIORITIES,
     createId,
     isValidTimestamp,
     emptyState,
     sanitizeTextValue,
+    sanitizeTodoPriority,
     normalizeProductivityState,
     createProductivityStore
 };
