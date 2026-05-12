@@ -33,6 +33,7 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@sentry/browser": "^10.53.0",
     "posthog-js": "^1.372.3",
     "posthog-node": "^5.30.6",
     "selenium-webdriver": "^4.43.0"
