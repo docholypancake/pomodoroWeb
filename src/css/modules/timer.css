@@ -178,6 +178,15 @@
     background: linear-gradient(145deg, rgba(74, 74, 74, 0.96), rgba(42, 42, 42, 0.96));
 }
 
+.btn--danger {
+    background: linear-gradient(145deg, #8f2418, #5c1610);
+    color: var(--color-text);
+}
+
+.btn--danger:hover {
+    background: linear-gradient(145deg, #a42d1f, #742118);
+}
+
 .btn--small {
     padding: var(--spacing-xs) var(--spacing-md);
     font-size: var(--font-size-base);

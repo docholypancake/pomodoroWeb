@@ -84,3 +84,20 @@
     color: rgba(255, 255, 255, 0.72);
     font-size: 1.05rem;
 }
+
+.demo-card {
+    margin-top: var(--spacing-lg);
+    padding: 1.2rem 1.3rem;
+    border-radius: 1.2rem;
+    background:
+        linear-gradient(165deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+        rgba(14, 14, 14, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.demo-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}

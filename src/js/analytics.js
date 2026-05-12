@@ -5,6 +5,7 @@ const env = typeof import.meta !== "undefined" && import.meta.env
 const POSTHOG_API_KEY = env.VITE_POSTHOG_API_KEY?.trim() || "";
 const POSTHOG_API_HOST = env.VITE_POSTHOG_API_HOST?.trim() || "https://eu.posthog.com";
 const URGENT_FILTER_FLAG = env.VITE_POSTHOG_URGENT_FILTER_FLAG?.trim() || "show-urgent-filter";
+const OBSERVABILITY_DEMO_FLAG = env.VITE_POSTHOG_OBSERVABILITY_DEMO_FLAG?.trim() || "show-observability-demo";
 
 const isConfigured = POSTHOG_API_KEY.length > 0;
 let posthogClient = null;
@@ -73,7 +74,8 @@ if (typeof window !== "undefined" && isConfigured) {
 const api = {
     isConfigured,
     flags: {
-        urgentFilter: URGENT_FILTER_FLAG
+        urgentFilter: URGENT_FILTER_FLAG,
+        observabilityDemo: OBSERVABILITY_DEMO_FLAG
     },
     capture,
     captureProductivityPageViewed() {
