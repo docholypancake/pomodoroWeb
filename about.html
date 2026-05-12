@@ -77,6 +77,19 @@
                 If you wish to help or thank me, visit the <strong>Help Us</strong> page to see how you can support the development
                 of this app. Your feedback and contributions are always welcome.
             </p>
+
+            <section class="demo-card hidden" id="observabilityDemoSection" aria-label="Observability demo" aria-hidden="true">
+                <h3>Observability Demo</h3>
+                <p>
+                    Use these controls to attach a demo user to Sentry and trigger a test exception for the lab.
+                </p>
+                <div class="demo-card__actions">
+                    <button class="btn btn--primary btn--small" id="setSentryUserBtn" type="button">Set demo user</button>
+                    <button class="btn btn--secondary btn--small" id="clearSentryUserBtn" type="button">Clear user</button>
+                    <button class="btn btn--small btn--danger" id="breakTheWorldBtn" type="button">Break the world</button>
+                </div>
+                <p class="form-message hidden" id="sentryDemoStatus" aria-live="polite"></p>
+            </section>
         </div>
     </main>
 
