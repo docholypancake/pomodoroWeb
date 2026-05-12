@@ -1,9 +1,18 @@
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
+const { PostHog } = require("posthog-node");
 
 const ROOT = path.resolve(__dirname, "..");
 const PORT = Number(process.env.PORT || 4173);
+
+const posthog = new PostHog(process.env.POSTHOG_API_KEY || "", {
+    host: process.env.POSTHOG_HOST || "https://us.i.posthog.com",
+    enableExceptionAutocapture: true,
+    flushAt: 1,
+    flushInterval: 0
+});
+const SERVER_DISTINCT_ID = "test-server";
 
 const MIME_TYPES = {
     ".html": "text/html; charset=utf-8",
@@ -47,6 +56,15 @@ const server = http.createServer((request, response) => {
         const errorMessage = resolvedRequest.errorStatusCode === 400
             ? "Bad request"
             : "Forbidden";
+        posthog.capture({
+            distinctId: SERVER_DISTINCT_ID,
+            event: "request_error",
+            properties: {
+                status_code: resolvedRequest.errorStatusCode,
+                path: request.url,
+                method: request.method
+            }
+        });
         sendResponse(response, resolvedRequest.errorStatusCode, errorMessage);
         return;
     }
@@ -54,6 +72,14 @@ const server = http.createServer((request, response) => {
     const targetPath = resolvedRequest.absolutePath;
     fs.stat(targetPath, (statError, stats) => {
         if (statError) {
+            posthog.capture({
+                distinctId: SERVER_DISTINCT_ID,
+                event: "request_not_found",
+                properties: {
+                    path: request.url,
+                    method: request.method
+                }
+            });
             sendResponse(response, 404, "Not found");
             return;
         }
@@ -66,6 +92,21 @@ const server = http.createServer((request, response) => {
 
         fs.readFile(filePath, (readError, data) => {
             if (readError) {
+                posthog.captureException(readError, SERVER_DISTINCT_ID, {
+                    event_name: "request_error",
+                    status_code: 500,
+                    path: request.url,
+                    method: request.method
+                });
+                posthog.capture({
+                    distinctId: SERVER_DISTINCT_ID,
+                    event: "request_error",
+                    properties: {
+                        status_code: 500,
+                        path: request.url,
+                        method: request.method
+                    }
+                });
                 sendResponse(response, 500, "Failed to read file");
                 return;
             }
@@ -77,4 +118,22 @@ const server = http.createServer((request, response) => {
 
 server.listen(PORT, "127.0.0.1", () => {
     console.log(`Static test server running at http://127.0.0.1:${PORT}`);
+    posthog.capture({
+        distinctId: SERVER_DISTINCT_ID,
+        event: "server_started",
+        properties: {
+            port: PORT,
+            host: "127.0.0.1"
+        }
+    });
+});
+
+process.on("SIGINT", async () => {
+    await posthog.shutdown();
+    process.exit(0);
+});
+
+process.on("SIGTERM", async () => {
+    await posthog.shutdown();
+    process.exit(0);
 });

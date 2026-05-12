@@ -86,6 +86,13 @@ npm run test:e2e:quiet
 - Coverage analysis notes live in `docs/testing/coverage-analysis.md`
 - A manual checklist lives in `docs/testing/manual-test-plan.md`
 
+## Product Analytics
+- PostHog is initialized from `src/js/analytics.js`
+- Configure `VITE_POSTHOG_API_KEY`, `VITE_POSTHOG_API_HOST`, and `VITE_POSTHOG_URGENT_FILTER_FLAG` in `.env`
+- Custom events currently include `task_created`, `task_completed`, `task_deleted`, `task_creation_validation_failed`, `productivity_page_viewed`, and `urgent_filter_toggled`
+- The `show-urgent-filter` feature flag reveals the urgent-task filter on the productivity page
+- A lab-ready PostHog setup checklist lives in `docs/testing/posthog-lab5.md`
+
 ## Repository Structure
 ```text
 index.html
