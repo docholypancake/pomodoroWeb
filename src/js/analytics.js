@@ -1,5 +1,3 @@
-import posthog from "../../node_modules/posthog-js/dist/module.no-external.js";
-
 const env = typeof import.meta !== "undefined" && import.meta.env
     ? import.meta.env
     : {};
@@ -9,6 +7,41 @@ const POSTHOG_API_HOST = env.VITE_POSTHOG_API_HOST?.trim() || "https://eu.postho
 const URGENT_FILTER_FLAG = env.VITE_POSTHOG_URGENT_FILTER_FLAG?.trim() || "show-urgent-filter";
 
 const isConfigured = POSTHOG_API_KEY.length > 0;
+let posthogClient = null;
+let posthogLoadPromise = null;
+
+function loadPostHog() {
+    if (!isConfigured) {
+        return Promise.resolve(null);
+    }
+
+    if (posthogClient) {
+        return Promise.resolve(posthogClient);
+    }
+
+    if (!posthogLoadPromise) {
+        posthogLoadPromise = import("posthog-js")
+            .then(module => {
+                const client = module.default;
+
+                client.init(POSTHOG_API_KEY, {
+                    api_host: POSTHOG_API_HOST,
+                    person_profiles: "identified_only",
+                    capture_pageview: true,
+                    autocapture: true
+                });
+
+                posthogClient = client;
+                return client;
+            })
+            .catch(error => {
+                console.warn("PostHog failed to initialize.", error);
+                return null;
+            });
+    }
+
+    return posthogLoadPromise;
+}
 
 function getTaskAgeInSeconds(task) {
     const createdAt = new Date(task?.createdAt || "");
@@ -27,16 +60,14 @@ function getTaskPriority(task) {
 
 function capture(eventName, properties = {}) {
     if (!isConfigured) return;
-    posthog.capture(eventName, properties);
+
+    void loadPostHog().then(client => {
+        client?.capture(eventName, properties);
+    });
 }
 
 if (typeof window !== "undefined" && isConfigured) {
-    posthog.init(POSTHOG_API_KEY, {
-        api_host: POSTHOG_API_HOST,
-        person_profiles: "identified_only",
-        capture_pageview: true,
-        autocapture: true
-    });
+    void loadPostHog();
 }
 
 const api = {
@@ -88,11 +119,18 @@ const api = {
             return;
         }
 
-        posthog.onFeatureFlags(() => callback(true));
+        void loadPostHog().then(client => {
+            if (!client) {
+                callback(false);
+                return;
+            }
+
+            client.onFeatureFlags(() => callback(true));
+        });
     },
     isFeatureEnabled(flagKey) {
-        if (!isConfigured) return false;
-        return Boolean(posthog.isFeatureEnabled(flagKey));
+        if (!isConfigured || !posthogClient) return false;
+        return Boolean(posthogClient.isFeatureEnabled(flagKey));
     }
 };
 
