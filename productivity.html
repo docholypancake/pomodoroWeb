@@ -73,6 +73,20 @@
                     </button>
                 </div>
 
+                <div class="productivity-toolbar hidden" id="urgentFilterToolbar">
+                    <button
+                        class="productivity-action"
+                        id="urgentFilterBtn"
+                        type="button"
+                        aria-pressed="false"
+                    >
+                        Show urgent only
+                    </button>
+                    <p class="productivity-toolbar__hint">
+                        Feature flag demo: the urgent-task filter appears only when the `show-urgent-filter` flag is enabled in PostHog.
+                    </p>
+                </div>
+
                 <div class="productivity-panels">
                     <section
                         id="productivity-panel-todo"
@@ -98,6 +112,15 @@
                             <div class="productivity-form-actions">
                                 <button class="btn btn--primary productivity-submit" type="submit">Add task</button>
                             </div>
+                            <label class="productivity-toggle" for="todoUrgent">
+                                <input
+                                    id="todoUrgent"
+                                    class="settings-checkbox productivity-toggle__input"
+                                    name="isUrgent"
+                                    type="checkbox"
+                                >
+                                <span class="productivity-toggle__label">Mark as urgent</span>
+                            </label>
                             <p class="form-message hidden" data-form-message="todo" aria-live="polite"></p>
                         </form>
 

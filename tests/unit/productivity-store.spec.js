@@ -4,8 +4,10 @@ import productivityStoreApi from "../../src/js/productivity-store.js";
 const {
     STORAGE_KEY,
     ITEM_LIMITS,
+    TODO_PRIORITIES,
     isValidTimestamp,
     sanitizeTextValue,
+    sanitizeTodoPriority,
     normalizeProductivityState,
     createProductivityStore
 } = productivityStoreApi;
@@ -27,6 +29,8 @@ describe("productivity-store", () => {
         expect(store.key).toBe(STORAGE_KEY);
         expect(ITEM_LIMITS.todo).toBe(160);
         expect(ITEM_LIMITS.notes).toBe(1200);
+        expect(TODO_PRIORITIES.URGENT).toBe("urgent");
+        expect(TODO_PRIORITIES.NORMAL).toBe("normal");
     });
 
     it("returns a fresh empty state object each time", () => {
@@ -50,6 +54,8 @@ describe("productivity-store", () => {
         expect(sanitizeTextValue("  hello  ", ITEM_LIMITS.todo)).toBe("hello");
         expect(sanitizeTextValue("   ", ITEM_LIMITS.todo)).toBe(null);
         expect(sanitizeTextValue("x".repeat(200), ITEM_LIMITS.todo)).toHaveLength(160);
+        expect(sanitizeTodoPriority("urgent")).toBe("urgent");
+        expect(sanitizeTodoPriority("anything-else")).toBe("normal");
     });
 
     it("normalizes corrupted raw state into a safe empty/default structure", () => {
@@ -69,6 +75,7 @@ describe("productivity-store", () => {
                 id: "1",
                 text: "keep",
                 completed: true,
+                priority: "normal",
                 createdAt: fixedNow.toISOString(),
                 updatedAt: fixedNow.toISOString()
             }],
@@ -134,6 +141,7 @@ describe("productivity-store", () => {
             id: "fixed-id",
             text: "Write tests",
             completed: false,
+            priority: "normal",
             createdAt: fixedNow.toISOString(),
             updatedAt: fixedNow.toISOString()
         });
@@ -142,7 +150,7 @@ describe("productivity-store", () => {
 
     it("prepends newly created todo items ahead of existing ones", () => {
         store.save({
-            todo: [{ id: "older", text: "Older", completed: false, createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }],
+            todo: [{ id: "older", text: "Older", completed: false, priority: "normal", createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }],
             notes: []
         });
 
@@ -167,6 +175,16 @@ describe("productivity-store", () => {
         });
     });
 
+    it("creates urgent todo items with explicit priority", () => {
+        const result = store.create("todo", {
+            text: "Ship fix",
+            completed: false,
+            priority: "urgent"
+        });
+
+        expect(result[0].priority).toBe("urgent");
+    });
+
     it("refuses to create blank items", () => {
         expect(store.create("todo", {
             text: "   ",
@@ -185,6 +203,7 @@ describe("productivity-store", () => {
                     id: "a",
                     text: "First",
                     completed: false,
+                    priority: "normal",
                     createdAt: "2026-04-07T11:00:00.000Z",
                     updatedAt: "2026-04-07T11:00:00.000Z"
                 },
@@ -192,6 +211,7 @@ describe("productivity-store", () => {
                     id: "b",
                     text: "Second",
                     completed: false,
+                    priority: "normal",
                     createdAt: "2026-04-07T11:05:00.000Z",
                     updatedAt: "2026-04-07T11:05:00.000Z"
                 }
@@ -209,6 +229,7 @@ describe("productivity-store", () => {
                 id: "a",
                 text: "First",
                 completed: false,
+                priority: "normal",
                 createdAt: "2026-04-07T11:00:00.000Z",
                 updatedAt: "2026-04-07T11:00:00.000Z"
             },
@@ -216,6 +237,7 @@ describe("productivity-store", () => {
                 id: "b",
                 text: "Second updated",
                 completed: true,
+                priority: "normal",
                 createdAt: "2026-04-07T11:05:00.000Z",
                 updatedAt: fixedNow.toISOString()
             }
@@ -249,6 +271,7 @@ describe("productivity-store", () => {
                 id: "a",
                 text: "Only",
                 completed: false,
+                priority: "normal",
                 createdAt: fixedNow.toISOString(),
                 updatedAt: fixedNow.toISOString()
             }],
@@ -261,7 +284,7 @@ describe("productivity-store", () => {
         });
 
         expect(store.update("todo", "a", { text: "   " })).toEqual([
-            { id: "a", text: "Only", completed: false, createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }
+            { id: "a", text: "Only", completed: false, priority: "normal", createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }
         ]);
 
         expect(store.update("notes", "n1", { content: "   " })).toEqual([
@@ -272,20 +295,20 @@ describe("productivity-store", () => {
     it("deletes matching items only", () => {
         store.save({
             todo: [
-                { id: "a", text: "First", completed: false, createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() },
-                { id: "b", text: "Second", completed: false, createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }
+                { id: "a", text: "First", completed: false, priority: "normal", createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() },
+                { id: "b", text: "Second", completed: false, priority: "normal", createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }
             ],
             notes: []
         });
 
         expect(store.delete("todo", "a")).toEqual([
-            { id: "b", text: "Second", completed: false, createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }
+            { id: "b", text: "Second", completed: false, priority: "normal", createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }
         ]);
     });
 
     it("deletes notes independently from todo items", () => {
         store.save({
-            todo: [{ id: "t1", text: "Task", completed: false, createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }],
+            todo: [{ id: "t1", text: "Task", completed: false, priority: "normal", createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }],
             notes: [
                 { id: "n1", content: "One", createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() },
                 { id: "n2", content: "Two", createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }
@@ -300,15 +323,15 @@ describe("productivity-store", () => {
 
     it("keeps state unchanged when updating or deleting unknown ids", () => {
         store.save({
-            todo: [{ id: "a", text: "Only", completed: false, createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }],
+            todo: [{ id: "a", text: "Only", completed: false, priority: "normal", createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }],
             notes: []
         });
 
         expect(store.update("todo", "missing", { completed: true })).toEqual([
-            { id: "a", text: "Only", completed: false, createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }
+            { id: "a", text: "Only", completed: false, priority: "normal", createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }
         ]);
         expect(store.delete("todo", "missing")).toEqual([
-            { id: "a", text: "Only", completed: false, createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }
+            { id: "a", text: "Only", completed: false, priority: "normal", createdAt: fixedNow.toISOString(), updatedAt: fixedNow.toISOString() }
         ]);
     });
 });
